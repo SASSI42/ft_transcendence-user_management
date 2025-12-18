@@ -1,0 +1,13 @@
+{
+    "type":"object",
+    "$id":"schema:user:headers",
+    "required":["Authorization"],
+    "additionalProperties":false,
+    "properties":{
+        "authorization":{
+            "type":"string",
+            "minLength":10,
+            "pattern":"^Bearer\\s.+$"
+        }
+    }
+}

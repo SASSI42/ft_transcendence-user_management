@@ -1,0 +1,16 @@
+
+{
+    "type": "object",
+    "$id": "schema:user:status:params",
+    "required": ["id", "status"],
+    "additionalProperties": false,
+    "properties": {
+    "id": {
+    "type": "string"
+    },
+    "status": {
+    "type": "string",
+    "enum": ["done", "undone"]
+        }
+    }
+}

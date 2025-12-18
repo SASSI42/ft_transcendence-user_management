@@ -1,0 +1,20 @@
+{
+    "type": "object",
+    "$id": "schema:user:create:response",
+    "required": ["status","success", "message", "user", "jwt"],
+    "additionalProperties": false,
+    "properties": {
+        "status":{"type":"boolean"},
+        "message":{"type":"string"},
+        "success": {"type" : "boolean"},
+        "user":{
+            "type":"object",
+            "required": ["id", "username", "email"],
+            "properties":{
+            "id": {"type": "string"},
+            "username":{"type" :"string"},
+            "email":{"type" :"string"}
+        }},
+        "jwt":{"type" :"string"}
+    }
+}

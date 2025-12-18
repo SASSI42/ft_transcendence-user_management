@@ -1,0 +1,9 @@
+{
+    "type":"array",
+    "$id":"schema:user:response:list_users",
+    "required": ["listUsers"],
+    "additionalProperties": false,
+    "properties":{
+        "listUsers":{"type":"array"}
+    }
+}
