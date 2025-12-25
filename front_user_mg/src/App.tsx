@@ -14,6 +14,8 @@ import { ToastProvider } from './components/toastContext';
 import NotFoundPage from './components/NotFoundPage';
 import TwoFactor from './components/twoFactor';
 import Leaderboard from './pages/leaderboard';
+import Recent_maches from './pages/recent_maches';
+
 
 const AuthRoutes = () => {
   // const { logout } = useAuth() as any;
@@ -37,6 +39,8 @@ const AuthRoutes = () => {
         <Route path="*" element={isLoggedIn ? <LoginPage page="not_found_page"> <NotFoundPage /> </LoginPage> : <Navigate to = "/signin"/>} />
         <Route path="/user_profile" element={isLoggedIn ? <UserProfile page="user_profile"> </UserProfile> : <Navigate to = "/signin"/>} />
         <Route path="/leaderboard" element={isLoggedIn ? <Leaderboard page="leaderboard"> </Leaderboard> : <Navigate to = "/signin"/>} />
+        <Route path="/recent_maches" element={isLoggedIn ? <Recent_maches page="recent_maches"> </Recent_maches> : <Navigate to = "/signin"/>} />
+
       </Routes>
     </>
   );

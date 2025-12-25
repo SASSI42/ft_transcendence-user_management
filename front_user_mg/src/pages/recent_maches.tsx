@@ -1,6 +1,6 @@
  import { Link } from 'react-router-dom';
 import Logo from '../assets/mobile-logo.svg';
-import PingoHappy from '../assets/pingo_happy.svg';
+import PingoHappy from '../assets/wolf.jpg';
 import TimeMatches from '../assets/icons8-time-machine-48(1).png';
 import avatar from '../assets/wolf.jpg';
 import next from '../assets/icons8-forward-24.png';
@@ -58,7 +58,33 @@ function Leaders({username, score})
   )
 }
 
-const LeaderBoard = () => {
+function Tournament(){
+
+  return (
+      <div className='my-4 ml-12 border-2 border-gray-500 w-[370px] rounded-3xl flex-end'>
+        <div className='flex justify-between'>
+        <div>
+          <p className='font-bebas-neue text-h4 ml-4 h-6'>1337 tournament</p>
+          <p className='ml-5 '>Ping pong . bo5</p>
+        </div>
+        <div className='mr-2'>
+          <p className='font-bebas-neue text-h4 ml-4'>WIN</p>
+          <p>{'3 hours ago'}</p>
+        </div>
+        </div>
+        <hr className='ml-4 mr-2 border-gray-500'/>
+        <p className='my-3 ml-4 w-[400px]'><img className='inline-block mr-4 rounded-3xl w-[40px] h-[40px]' src={PingoHappy}/>{"hshshshs"}
+        <p className='inline-block ml-2 font-bebas-neue text-h4'>01<p className='inline-block mr-2'>
+          </p></p>| {'02'} | {'03'} | {'05'} | {'06'}  | {'07'}</p>
+        <hr className='mx-16'/>
+        <p className='my-3 ml-4 w-[400px]'><img className='inline-block mr-4 rounded-3xl w-[40px] h-[40px]' src={PingoHappy}/>{"hshshshs"}
+        <p className='inline-block ml-2 font-bebas-neue text-h4'>01<p className='inline-block mr-2'>
+          </p></p>| {'02'} | {'03'} | {'05'} | {'06'}  | {'07'}</p>
+      </div>
+  )
+}
+
+const Recent_maches = () => {
   let i = 1;
   let id = 15;
   let username1 = "shisui uchiha";
@@ -115,8 +141,7 @@ const LeaderBoard = () => {
 ]
 
 const res = leaders.map((t)=>{return (<Leaders score={t.score} username={t.username1}/>)})
-  const [input, setInput] = useState('')
-  return (
+  return (                                                                                                                                                        
     <div className="flex flex-col justify-between h-screen">
       <div className="flex flex-row items-center justify-between m-5 lg:m-6 xl:m-6">
         <Link to="/dashboard"><img src={Logo} /></Link>
@@ -124,38 +149,34 @@ const res = leaders.map((t)=>{return (<Leaders score={t.score} username={t.usern
       <div className="flex flex-col self-center h-2/3 w-3/4 min-h-[90px] min-w-[20px] max-w-[1000px] max-h-[1000px] rounded-3xl bg-secondaryGradient 
       border-2 border-t-teal-400 border-l-teal-400 border-b-teal-400 border-r-teal-400">
         <div className='flex justify-between'>
-          <p className='ml-8 my-8 font-bebas-neue text-h2 text-gray-300'><img className='inline-block h-[30px] w-[30px] mr-3' src={statistics}/>leaderboard</p>
-          <div className='mr-8 my-9 '>
-          <input
-          value={input}
-          onChange={(event)=>{setInput(event.target.value)}}
-          placeholder= '   search for players'
-          type='search'
-          className='text-black h-[30px] w-[220px] rounded-md border-black'></input>
-          <input type='submit' value='submit' disabled={false} onClick={()=>{
-            console.log(input)
-          }} className='ml-5 border-blue-500 border-2  primary-button text-bgsecondary border-transparent rounded-md w-[70px] h-[30px]' />
-          </div>
+          <p className='ml-8 my-8 font-bebas-neue text-h2 text-gray-300'><img className='inline-block h-[40px] w-[40px] mr-3' src={TimeMatches}/>recent maches</p>
         </div>
-        <div className='ml-5 flex iteams-end'>
-        <p className='ml-12'>rank</p>
-        <p className='mr-4 ml-8'>avatar</p>
-        <p className='ml-4'>name</p>
+        <div className='ml-16 flex iteams-end'>
+        <img src={i1}/>
+        <p className='ml-4 border-2 rounded-3xl w-[100px] h-[30px] bg-white text-black'><img className='inline-block ml-1 mr-1' src={i1}/>1v1 only</p>
+        <p className='ml-4 border-2 rounded-3xl w-[160px] h-[30px] bg-white text-black'><img className='inline-block ml-1 mr-1' src={i1}/>tournament only</p>
+        <p className='ml-4 border-2 rounded-3xl w-[100px] h-[30px] bg-white text-black'>ping pong</p>
+        <p className='ml-4 border-2 rounded-3xl w-[100px] h-[30px] bg-white text-black'>tic tac toe</p>
+        <p className='ml-4 border-2 rounded-3xl w-[100px] h-[25px] bg-white text-black'>best of 3</p>
+        <p className='ml-4 border-2 rounded-3xl w-[100px] h-[25px] bg-white text-black self-center'>best of 5</p>
         </div>
-        <hr className='ml-8 my-2 w-[900px] border-gray-500'/>
-        {res}
-        {res}
-        <p className='self-center font-bebas-neue text-h2 my-4'><p>{'<'}<p className='ml-8 mr-8  inline-block rounded-md border-2 bg-white text-black w-8 h-12'>{'01'}</p>{'>'}</p></p>
-        <div className='flex ml-16'>
-          <p className='font-bebas-neue text-h3 self-center mr-6'>{100}</p>
-          <div className='text-h4 font-bebas-neue border-2 border-white rounded-full self-center w-5/6 h-[50px] bg-gray-300'>
-          <p className='text-black'><img className='inline-block rounded-3xl w-10 h-10 mr-3 ml-2 my-1' src={avatar}/>{username1}</p>
-          </div>
+        <div className='flex'>
+        <div>
+        <Tournament/>
+        <Tournament/>
+        <Tournament/>
         </div>
+        <div>
+        <Tournament/>
+        <Tournament/>
+        <Tournament/>
+        </div>
+        </div>
+
       </div>
       <div className='h-12'></div>
     </div>
   )
 }
 
-export default LeaderBoard
+export default Recent_maches

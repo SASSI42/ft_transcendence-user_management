@@ -5,8 +5,8 @@ import Cookies from "js-cookie";
 const update_emailApi = async (password:string, newUsername: string, conUsername:string) => {
     const payload = {
         password: password,
-        newUsername: newUsername,
-        conUsername:conUsername
+        newName: newUsername,
+        confirmName:conUsername
     };
     if (newUsername !== conUsername)
     {

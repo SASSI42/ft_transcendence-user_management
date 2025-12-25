@@ -11,22 +11,6 @@ import element1 from '../assets/icons8-battle-24.png';
 import element2 from '../assets/icons8-user-secured-48.png';
 import element3 from '../assets/icons8-user-clock-48.png';
 
-
-
-
-
-// const paths = {
-//   "sign_in" : ["/signin", "Sign in"],
-//   "sign_up" : ["/signup", "Sign up"],
-//   "password_lost" : ["/forgot-password", "Forgot Password"],
-//   "password_reset" : ["/reset-password", "Reset Password"],
-//   "update_password" : ["/update_password", "Update_password"],
-//   "update_email" : ["/update_email", "Update_email"],
-//   "update_username" : ["/update_username", "Update_username"],
-//   "not_found_page" : ["/not_found_page", "we are so Sorry!!"],
-//   "two_factor" : ["/two_factor", "two factor auth"],
-// }
-
 function Matches ({username1, username2, time, res1, res2, game})
 {
   let id = 15;
@@ -178,15 +162,11 @@ const res = leaders.map((t)=>{
                     <p className='  flex justify-center text-h6'>tournaments</p>
                     <p className='  flex justify-center  text-h6'>won</p>
                 </div>
+
+                                                                                                                            
                 </div>
                 <div className='ml-4 flex'>
                 <hr className='w-px h-20 border-2 rounded-3xl border-gray-600 mr-5 my-2'/>
-                <img src={addFriend} className='ml-2 w-[40px] h-[40px] my-8'/>
-                <img src={chat} className='ml-4 w-[40px] h-[40px] my-8'/>
-                <img src={element1} className='ml-2 w-[40px] h-[40px] my-8 '/>
-                <img src={element2} className='ml-2 w-[40px] h-[40px] my-8'/>
-                <img src={element3} className='ml-2 w-[40px] h-[40px] my-8'/>
-
                 </div>
           </div>
         </div>
@@ -194,18 +174,18 @@ const res = leaders.map((t)=>{
         <div>
         <div className='flex justify-between '>
           <p className='ml-8 font-bebas-neue'><img className='inline-block h-6' src={TimeMatches}/> recent matches</p>
-          <Link to="/" className='text-gray-400 hover:text-cyan-400'>see more <img className="inline-block" src={next}/></Link>
+          <Link to="http://localhost:5173/Recent_maches" className='text-gray-400 hover:text-cyan-400'>see more <img className="inline-block" src={next}/></Link>
         </div>
         {t}
         </div>
         <div className='flex flex-col'>        
         <div className='flex justify-between mb-2'>
           <p className='ml-8 font-bebas-neue'><img className='inline-block w-4 mr-2' src={statistics}/> leaderboard</p>
-          <Link to="/" className=' ml-16 text-gray-400 hover:text-cyan-400'>see more <img className="inline-block" src={next}/></Link>
+          <Link to="http://localhost:5173/leaderboard" className=' ml-16 text-gray-400 hover:text-cyan-400'>see more <img className="inline-block" src={next}/></Link>
         </div>
         {res}
         </div>
-        </div>
+        </div>      
       </div>
       <div className='h-12'></div>
     </div>

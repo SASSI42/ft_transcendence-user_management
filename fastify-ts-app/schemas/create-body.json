@@ -6,6 +6,6 @@
     "properties": {
         "username":{"type":"string", "minLength":4, "maxLength":20},
         "email":{"type": "string", "format":"email"},
-        "password":{"type":"string", "format":"password","minLength":4, "maxLength":20}
+        "password":{"type":"string", "minLength":4, "maxLength":20}
     }
 }
