@@ -101,7 +101,7 @@ useEffect(() => {
 
 
   const systemBot = {
-    id: 'SYSTEM',
+    id: SYSTEM_ID,
     username: 'System',
     avatarUrl: 'https://ui-avatars.com/api/?name=System&background=000&color=fff', // Black icon
     status: 'online' // Dummy status (won't be shown)

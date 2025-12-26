@@ -23,7 +23,7 @@ export const ChatWindow: React.FC = () => {
   let selectedFriend: any = null;
   
   if (isSystem) {
-      selectedFriend = { id: 'SYSTEM', username: 'System', avatarUrl: 'https://ui-avatars.com/api/?name=System&background=000&color=fff' };
+      selectedFriend = { id: SYSTEM_ID, username: 'System', avatarUrl: 'https://ui-avatars.com/api/?name=System&background=000&color=fff' };
   } else {
       selectedFriend = friends.find((f) => f.id === selectedFriendId) 
                     || blockedUsers.find((f) => f.id === selectedFriendId);

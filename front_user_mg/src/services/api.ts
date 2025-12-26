@@ -1,9 +1,5 @@
 import axios from 'axios';
 
-// Use the environment variable from vite.config.ts or default to localhost
-// 🛠️ FIX: Dynamic URL Calculation
-// If I am at "10.11.9.4:3000", I want backend at "10.11.9.4:3001"
-// If I am at "localhost:3000", I want backend at "localhost:3001"
 // 🛠️ FIX: Dynamic URL
 // This checks: "Where is this page hosted?" and uses that IP for the backend.
 const { protocol, hostname } = window.location;
