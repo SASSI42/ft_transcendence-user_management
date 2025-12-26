@@ -84,6 +84,40 @@ const DatabasePlugin: FastifyPluginAsync = async (fastify) => {
         )
     `).run();
 
+    // 4. Create Indexes
+ db.exec(`
+        CREATE INDEX IF NOT EXISTS idx_friendships_user_id ON friendships(user_id);
+        CREATE INDEX IF NOT EXISTS idx_friendships_friend_id ON friendships(friend_id);
+        CREATE INDEX IF NOT EXISTS idx_friendships_status ON friendships(status);
+        
+        CREATE INDEX IF NOT EXISTS idx_messages_sender_id ON messages(sender_id);
+        CREATE INDEX IF NOT EXISTS idx_messages_receiver_id ON messages(receiver_id);
+        CREATE INDEX IF NOT EXISTS idx_messages_read ON messages(read);
+        
+        CREATE INDEX IF NOT EXISTS idx_game_invites_receiver_id ON game_invites(receiver_id);
+        CREATE INDEX IF NOT EXISTS idx_game_invites_status ON game_invites(status);
+        
+        CREATE INDEX IF NOT EXISTS idx_blocked_blocker ON blocked_users(blocker_id);
+    `);
+    // 🛠️ 5. SEED SYSTEM USER (The Fix)
+    // We insert a user with ID -1 so Foreign Keys don't break.
+    const systemUser = db.prepare('SELECT id FROM users WHERE id = ?').get(-1);
+    
+    if (!systemUser) {
+        db.prepare(`
+            INSERT INTO users (id, username, email, password, Avatar, status)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `).run(
+            -1, 
+            'System', 
+            'system@pong.com', 
+            'system_secure_pass', // Nobody knows this
+            'https://ui-avatars.com/api/?name=System&background=000&color=fff',
+            'online'
+        );
+        console.log('🤖 System User (ID: -1) created successfully.');
+    }
+
     // 3. Decorate Fastify
     fastify.decorate('db', db);
     fastify.addHook('onClose', () => {
