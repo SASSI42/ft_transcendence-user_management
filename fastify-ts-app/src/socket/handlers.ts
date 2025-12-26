@@ -276,10 +276,12 @@ export function setupSocketHandlers(db: Database, io: Server) {
                         });
                     }
                     // Notify Sender (Optional: add to 'sent' list)
+                    const friendInfo = db.prepare('SELECT username FROM users WHERE id = ?').get(data.friendId) as any;
                     socket.emit('friend_request_sent_success', { 
                         id: result.id, 
                         user_id: userId, 
-                        friend_id: data.friendId, 
+                        friend_id: data.friendId,
+                        username: friendInfo?.username || 'Unknown', 
                         status: 'pending' 
                     });
                 }
