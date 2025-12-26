@@ -6,3 +6,4 @@ export const ENDPOINTS = {
   forgotpassword: `${API_BASE}/api/user/forgot`,
   recoverpassword: `${API_BASE}/api/user/reset`
 };
+

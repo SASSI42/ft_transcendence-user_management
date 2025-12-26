@@ -191,9 +191,18 @@ static getFriends(db: Database, userId: number) {
     }
 
     // Get sent friend requests
-    static getSentRequests(db: Database, userId: number) {
+static getSentRequests(db: Database, userId: number) {
         const stmt = db.prepare(`
-            SELECT * FROM friendships WHERE user_id = ? AND status = 'pending'
+            SELECT 
+                f.id,
+                f.user_id,
+                f.friend_id,
+                f.status,
+                u.username,          -- ✅ Fetch the Username
+                u.Avatar as avatarUrl -- ✅ Fetch the Avatar
+            FROM friendships f
+            JOIN users u ON f.friend_id = u.id -- Join with the Receiver
+            WHERE f.user_id = ? AND f.status = 'pending'
         `);
         return stmt.all(userId);
     }

@@ -1,11 +1,16 @@
 import { ENDPOINTS } from "./Endpoints";
 
+const getBackendUrl = () => {
+    const { protocol, hostname } = window.location;
+    return `${protocol}//${hostname}:3000`; 
+};
+
 const ForgotPassword = async (email: string) => {
     const payload = {
         email: email
     };
 
-    const response = await fetch("http://localhost:3000/api/user/forgot-password", {
+    const response = await fetch(`${getBackendUrl()}/api/user/forgot-password`, {
         method: 'PUT',
         headers: {
             "Content-Type": "application/json",

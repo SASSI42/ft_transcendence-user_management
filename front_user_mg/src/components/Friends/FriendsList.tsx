@@ -201,10 +201,11 @@ return (
                         {/* Sent (Outgoing) */}
                         {sentRequests.map((req: any) => (
                             <div key={req.id} className="flex items-center justify-between p-3 border-b border-secondary/10 opacity-60 hover:opacity-100 transition-opacity">
-                                <div className="flex flex-col">
-                                    <span className="text-xs text-secondary">To: User {req.friend_id.substring(0,4)}...</span>
-                                    <span className="text-[10px] text-secondary/50 italic">Waiting...</span>
-                                </div>
+                              <div className="flex flex-col">
+                                  {/* ✅ FIX 1: Prefer Username */}
+                                  <span className="text-xs text-secondary"> To: {req.username || 'Unknown User'} </span>
+                                  <span className="text-[10px] text-secondary/50 italic">Waiting...</span>
+                              </div>
                                 <button 
                                   onClick={() => declineRequest(req.id)} 
                                   className="text-xs text-secondary hover:text-red transition-colors px-2 py-1 rounded hover:bg-red/10"

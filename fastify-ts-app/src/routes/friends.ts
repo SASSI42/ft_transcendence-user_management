@@ -1,10 +1,17 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyRequest} from 'fastify';
 import { FriendsService } from '../services/FriendsService';
+// import   FastifyJWT  from '../types/fastify-jwt';
+
 
 interface UserRow {
     id: number;
     username: string;
     Avatar: string;
+}
+
+interface JwtUser {
+    id: number;
+    username: string;
 }
 export async function friendsRoutes(fastify: FastifyInstance) {
     
@@ -12,7 +19,10 @@ export async function friendsRoutes(fastify: FastifyInstance) {
     fastify.get('/friends/find/:username', async (request, reply) => {
         try {
             const { username } = request.params as { username: string };
-            const currentUserId = request.user.id; // Auth middleware provides this
+
+            const userToken = request.user as JwtUser; 
+            const currentUserId = userToken.id;
+
             const user = fastify.db.prepare('SELECT id, username, Avatar FROM users WHERE username = ?').get(username) as UserRow | undefined;
             if (!user) {
                 return reply.code(404).send({ error: 'User not found' });
@@ -50,8 +60,8 @@ export async function friendsRoutes(fastify: FastifyInstance) {
     // Get friends list
     fastify.get('/friends/:userId', async (request, reply) => {
         try {
-            const { userId } = request.params as { userId: number };
-            const friends = FriendsService.getFriends(fastify.db, userId);
+            const { userId } = request.params as { userId: string };
+            const friends = FriendsService.getFriends(fastify.db, Number(userId));
             return reply.code(200).send(friends);
         } catch (error: any) {
             return reply.code(400).send({ error: error.message });
@@ -61,8 +71,8 @@ export async function friendsRoutes(fastify: FastifyInstance) {
     // Get pending friend requests
     fastify.get('/friends/:userId/pending', async (request, reply) => {
         try {
-            const { userId } = request.params as { userId: number };
-            const requests = FriendsService.getPendingRequests(fastify.db, userId);
+            const { userId } = request.params as { userId: string };
+            const requests = FriendsService.getPendingRequests(fastify.db, Number(userId));
             return reply.code(200).send(requests);
         } catch (error: any) {
             return reply.code(400).send({ error: error.message });
@@ -72,8 +82,8 @@ export async function friendsRoutes(fastify: FastifyInstance) {
     // Get sent friend requests
     fastify.get('/friends/:userId/sent', async (request, reply) => {
         try {
-            const { userId } = request.params as { userId: number };
-            const requests = FriendsService.getSentRequests(fastify.db, userId);
+            const { userId } = request.params as { userId: string };
+            const requests = FriendsService.getSentRequests(fastify.db, Number(userId));
             return reply.code(200).send(requests);
         } catch (error: any) {
             return reply.code(400).send({ error: error.message });
@@ -83,8 +93,8 @@ export async function friendsRoutes(fastify: FastifyInstance) {
     // Get blocked users
     fastify.get('/friends/:userId/blocked', async (request, reply) => {
         try {
-            const { userId } = request.params as { userId: number };
-            const blocked = FriendsService.getBlockedUsers(fastify.db, userId);
+            const { userId } = request.params as { userId: string };
+            const blocked = FriendsService.getBlockedUsers(fastify.db, Number(userId));
             return reply.code(200).send(blocked);
         } catch (error: any) {
             return reply.code(400).send({ error: error.message });

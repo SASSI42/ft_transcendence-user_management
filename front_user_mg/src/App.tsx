@@ -42,12 +42,7 @@ const AuthRoutes = () => {
         <Route path="/leaderboard" element={isLoggedIn ? <Leaderboard page="leaderboard"> </Leaderboard> : <Navigate to = "/signin"/>} />
         <Route path="/recent_maches" element={isLoggedIn ? <Recent_maches page="recent_maches"> </Recent_maches> : <Navigate to = "/signin"/>} /> */}
         <Route path="/chat" element={
-                // <ProtectedRoute> 
-                    // <Layout> {/* Assuming you have a Layout/Navbar wrapper */}
-                        <ChatPage />
-                    // </Layout>
-                // </ProtectedRoute>
-            } />
+            isLoggedIn ? <ChatPage /> : <Navigate to="/signin" /> } />
       </Routes>
     </>
   );

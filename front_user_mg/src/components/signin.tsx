@@ -14,7 +14,6 @@ import validateEmail, { validatePassword } from '../utils/FormValidation'
 import { useToast } from './toastContext';
 import Cookies from "js-cookie";
 
-
 function Signin() {
 	const {showToast} = useToast() as any;
 	const email = useForm('', validateEmail);
@@ -101,7 +100,7 @@ function Signin() {
 					<hr className="w-1/3 border-bgsecondary" />
 				</div>
 				<div className="flex flex-row flex-wrap mb-4 text-h6 gap-y-2 justify-evenly font-bebas-neue">
-				<Link to='http://localhost:3000/login/google' className="inline-flex items-center gap-1 secondary-button">
+				<Link to='/login/google' className="inline-flex items-center gap-1 secondary-button">
 					<img className="w-3" src={GoogleIcon} />
 					<p className='leading-none'>login with Google</p>
 				</Link>

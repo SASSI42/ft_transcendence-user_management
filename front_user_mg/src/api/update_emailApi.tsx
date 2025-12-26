@@ -2,6 +2,11 @@ import { ENDPOINTS } from "./Endpoints";
 import Cookies from "js-cookie";
 
 
+const getBackendUrl = () => {
+    const { protocol, hostname } = window.location;
+    return `${protocol}//${hostname}:3000`; 
+};
+
 const update_emailApi = async (password:string, newAddress: string, ConAddress:string) => {
     const payload =
     {
@@ -15,7 +20,7 @@ const update_emailApi = async (password:string, newAddress: string, ConAddress:s
         throw new Error('mismatched email Addresses');
     }
     let token = Cookies.get('jwt');
-    const response = await fetch("http://localhost:3000/api/user/update_email", {
+    const response = await fetch(`${getBackendUrl()}/api/user/update_email`, {
         method: 'PUT',
         headers: {
             "Content-Type": "application/json",

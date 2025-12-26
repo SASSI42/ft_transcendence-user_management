@@ -1,12 +1,18 @@
 import { ENDPOINTS } from "./Endpoints";
 
+
+const getBackendUrl = () => {
+    const { protocol, hostname } = window.location;
+    return `${protocol}//${hostname}:3000`; 
+};
+
 const signInApi = async (email: string, password: string) => {
     const payload = {
         email: email,
         password: password 
     };
 
-    const response = await fetch("http://localhost:3000/api/user/signIn", {
+    const response = await fetch(`${getBackendUrl()}/api/user/signIn`, {
         method: 'POST',
         headers: {
             "Content-Type": "application/json",

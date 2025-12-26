@@ -174,14 +174,14 @@ const res = leaders.map((t)=>{
         <div>
         <div className='flex justify-between '>
           <p className='ml-8 font-bebas-neue'><img className='inline-block h-6' src={TimeMatches}/> recent matches</p>
-          <Link to="http://localhost:5173/Recent_maches" className='text-gray-400 hover:text-cyan-400'>see more <img className="inline-block" src={next}/></Link>
+          <Link to="/Recent_maches" className='text-gray-400 hover:text-cyan-400'>see more <img className="inline-block" src={next}/></Link>
         </div>
         {t}
         </div>
         <div className='flex flex-col'>        
         <div className='flex justify-between mb-2'>
           <p className='ml-8 font-bebas-neue'><img className='inline-block w-4 mr-2' src={statistics}/> leaderboard</p>
-          <Link to="http://localhost:5173/leaderboard" className=' ml-16 text-gray-400 hover:text-cyan-400'>see more <img className="inline-block" src={next}/></Link>
+          <Link to="/leaderboard" className=' ml-16 text-gray-400 hover:text-cyan-400'>see more <img className="inline-block" src={next}/></Link>
         </div>
         {res}
         </div>

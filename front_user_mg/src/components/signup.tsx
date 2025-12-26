@@ -15,7 +15,6 @@ import { useToast } from './toastContext';
 import PingoHappy from '../assets/pingo_happy.svg';
 import GoogleIcon from '../assets/googleIcon.png';
 
-
 function Signup() {
   const email = useForm('', validateEmail);
 	const username = useForm('', validateUsername);
@@ -121,7 +120,7 @@ function Signup() {
       <p className="text-h6body font-bebas-neue">or</p>
 			<hr className="w-1/3 border-bgsecondary" />
       </div>
-      <Link to='http://localhost:3000/login/google' className="inline-flex items-center gap-0 secondary-button">
+      <Link to='/login/google' className="inline-flex items-center gap-0 secondary-button">
       <p className='leading-none w-full font-bebas-neue'>sign up with Google</p>
       <img className="w-4" src={GoogleIcon} />
       </Link>

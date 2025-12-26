@@ -1,6 +1,11 @@
 import { ENDPOINTS } from "./Endpoints";
 import Cookies from "js-cookie";
 
+const getBackendUrl = () => {
+    const { protocol, hostname } = window.location;
+    return `${protocol}//${hostname}:3000`; 
+};
+
 const RecoverPasswordApi = async (newPassword: string, confirmPassword:string) => {
     const payload = {
         'NewPassword': newPassword,
@@ -10,7 +15,7 @@ const RecoverPasswordApi = async (newPassword: string, confirmPassword:string) =
         throw new Error('mismatched passwords');
     }
     let token = Cookies.get('jwt');
-    const response = await fetch("http://localhost:3000/api/user/reset-password", {
+    const response = await fetch(`${getBackendUrl()}/api/user/reset-password`, {
         method: 'PUT',
         headers: {
             "Content-Type": "application/json",
