@@ -14,6 +14,7 @@ export default {
         leaderboadbronze: '#A97142',
         green: '#4C8C6D',
         red: '#A44C4C',
+        online: '#4ade80',
       },
       fontSize: {
         h1body: '1.5625rem',

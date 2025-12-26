@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/auth';
-import UserProfile from './pages/user_profile';
+// import UserProfile from './pages/user_profile';
 import Signin from './components/signin';
 import Signup from './components/signup';
 import Update_password from './components/update_password';
@@ -13,8 +13,9 @@ import { useAuth, AuthProvider } from './components/authContext';
 import { ToastProvider } from './components/toastContext';
 import NotFoundPage from './components/NotFoundPage';
 import TwoFactor from './components/twoFactor';
-import Leaderboard from './pages/leaderboard';
-import Recent_maches from './pages/recent_maches';
+// import Leaderboard from './pages/leaderboard';
+// import Recent_maches from './pages/recent_maches';
+import { ChatPage } from "./pages/chat";
 
 
 const AuthRoutes = () => {
@@ -37,10 +38,16 @@ const AuthRoutes = () => {
         <Route path="/" element={isLoggedIn ? <DashboardPage /> : <Navigate to="/signin" />} />
         <Route path="/dashboard" element={isLoggedIn ? <DashboardPage /> : <Navigate to="/signin"/>} />
         <Route path="*" element={isLoggedIn ? <LoginPage page="not_found_page"> <NotFoundPage /> </LoginPage> : <Navigate to = "/signin"/>} />
-        <Route path="/user_profile" element={isLoggedIn ? <UserProfile page="user_profile"> </UserProfile> : <Navigate to = "/signin"/>} />
+        {/* <Route path="/user_profile" element={isLoggedIn ? <UserProfile page="user_profile"> </UserProfile> : <Navigate to = "/signin"/>} />
         <Route path="/leaderboard" element={isLoggedIn ? <Leaderboard page="leaderboard"> </Leaderboard> : <Navigate to = "/signin"/>} />
-        <Route path="/recent_maches" element={isLoggedIn ? <Recent_maches page="recent_maches"> </Recent_maches> : <Navigate to = "/signin"/>} />
-
+        <Route path="/recent_maches" element={isLoggedIn ? <Recent_maches page="recent_maches"> </Recent_maches> : <Navigate to = "/signin"/>} /> */}
+        <Route path="/chat" element={
+                // <ProtectedRoute> 
+                    // <Layout> {/* Assuming you have a Layout/Navbar wrapper */}
+                        <ChatPage />
+                    // </Layout>
+                // </ProtectedRoute>
+            } />
       </Routes>
     </>
   );
