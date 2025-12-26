@@ -56,8 +56,12 @@ const start = async () => {
 
     // 4. Start Server
     await server.ready(); // Wait for plugins
-    server.server.listen(3000, () => {
-        console.log('🚀 Server running on port 3000');
+    server.server.listen({ port: 3000, host: '0.0.0.0' }, () => {
+      // if (err) {
+      //       server.log.error(err);
+      //       process.exit(1);
+      //   }
+        console.log(`🚀 Server running on port 3000`);
     });
 
     // 5. Setup Socket.IO

@@ -19,7 +19,11 @@ class SocketService {
         const token = localStorage.getItem('authToken');
         if (!token) return;
 
-        this.socket = io('http://localhost:3000', { 
+        // 🛠️ FIX: Dynamic URL here too
+        const { protocol, hostname } = window.location;
+        const SOCKET_URL = `${protocol}//${hostname}:3000`;
+
+        this.socket = io(SOCKET_URL, { 
             auth: { token }, 
             transports: ['websocket'], 
             withCredentials: true

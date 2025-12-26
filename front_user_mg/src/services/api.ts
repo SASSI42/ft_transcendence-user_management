@@ -4,13 +4,17 @@ import axios from 'axios';
 // 🛠️ FIX: Dynamic URL Calculation
 // If I am at "10.11.9.4:3000", I want backend at "10.11.9.4:3001"
 // If I am at "localhost:3000", I want backend at "localhost:3001"
+// 🛠️ FIX: Dynamic URL
+// This checks: "Where is this page hosted?" and uses that IP for the backend.
+const { protocol, hostname } = window.location;
+const BACKEND_URL = `${protocol}//${hostname}:3000`; // Note: Port 3000
+
 export const api = axios.create({
-    baseURL: 'http://localhost:3000/api', // Match your Fastify port
+    baseURL: `${BACKEND_URL}/api`, 
     headers: {
         'Content-Type': 'application/json'
     }
 });
-
 // Interceptor: Automatically add the 'User ID' to every request
 // Add Bearer Token to every request
 api.interceptors.request.use((config) => {
