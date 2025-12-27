@@ -6,12 +6,23 @@ import { socketService } from '../../services/socket';
 import { MessageBubble } from './MessageBubble';
 import { api } from '../../services/api';
 import { ChallengeIcon, RemoveFriendIcon, BlockUserIcon, SendIcon } from '../icons';
+import { ConfirmationModal } from '../UI/ConfirmationModal';
 
 const MAX_MESSAGE_LENGTH = 2000;
 const SYSTEM_ID = -1;
 export const ChatWindow: React.FC = () => {
   // 1. ALL HOOKS MUST BE AT THE TOP
   const [inputText, setInputText] = useState('');
+
+  const [modalConfig, setModalConfig] = useState({
+      isOpen: false,
+      title: '',
+      message: '',
+      confirmText: '',
+      isDangerous: false,
+      onConfirm: () => {}
+  });
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const { friends, blockedUsers, selectedFriendId, messages, setMessages, setFriends, userStatuses } = useChatStore();
@@ -107,39 +118,60 @@ export const ChatWindow: React.FC = () => {
     if (selectedFriendId && isOnline) socketService.sendGameInvite(selectedFriendId);
   };
 
-  const handleBlockAction = async () => {
+const handleBlockAction = () => {
     if (!selectedFriendId || !currentUser) return;
-    const action = isBlocked ? 'Unblock' : 'Block';
-    if (!confirm(`${action} ${selectedFriend?.username}?`)) return;
+    
+    // We are about to BLOCK (if not already) or UNBLOCK
+    const actionType = isBlocked ? 'unblock' : 'block';
 
-    // 🛠️ FIX: Use Socket Actions
-    if (isBlocked) {
-        socketService.unblockUser(selectedFriendId);
-    } else {
-        socketService.blockUser(selectedFriendId);
-        // Note: The socket listener 'friend_blocked' will update the store, 
-        // but we can close the chat immediately here for better UX.
-        useChatStore.setState({ selectedFriendId: null });
-    }
-    // toggleBlock is no longer needed manually if socket handlers work!
+    setModalConfig({
+        isOpen: true,
+        title: actionType === 'block' ? `Block ${selectedFriend.username}?` : `Unblock ${selectedFriend.username}?`,
+        message: actionType === 'block' 
+            ? "They can still send you messages and invites, but you will not receive them."
+            : "You will be able to receive their messages and invites again.",
+        confirmText: actionType === 'block' ? 'Block User' : 'Unblock',
+        isDangerous: actionType === 'block', // Red button for blocking
+        onConfirm: () => {
+            if (actionType === 'block') {
+                socketService.blockUser(selectedFriendId);
+                useChatStore.setState({ selectedFriendId: null }); // Close chat
+            } else {
+                socketService.unblockUser(selectedFriendId);
+            }
+        }
+    });
   };
 
- const handleRemove = async () => {
+const handleRemove = () => {
     if (!selectedFriendId || !currentUser) return;
-    if (!confirm(`Remove ${selectedFriend?.username} from friends?`)) return;
-    try {
-        socketService.removeFriend(selectedFriendId);
-        setFriends(friends.filter(f => f.id !== selectedFriendId));
-        useChatStore.setState(state => ({
-            blockedUsers: state.blockedUsers.filter(b => b.id !== selectedFriendId)
-        }));
-        useChatStore.setState({ selectedFriendId: null });
-    } catch (error) { alert('Failed to remove friend'); }
+    
+    setModalConfig({
+        isOpen: true,
+        title: `Remove ${selectedFriend.username}?`,
+        message: "Are you sure you want to remove this friend?",
+        confirmText: 'Remove Friend',
+        isDangerous: true,
+        onConfirm: () => {
+            try {
+                socketService.removeFriend(selectedFriendId);
+                setFriends(friends.filter(f => f.id !== selectedFriendId));
+                useChatStore.setState(state => ({
+                    blockedUsers: state.blockedUsers.filter(b => b.id !== selectedFriendId)
+                }));
+                useChatStore.setState({ selectedFriendId: null });
+            } catch (error) { console.error('Failed to remove friend'); }
+        }
+    });
   };
 
   // 5. RENDER
   return (
     <div className="flex-1 flex flex-col h-full bg-bgsecondary relative">
+      <ConfirmationModal 
+          {...modalConfig} 
+          onClose={() => setModalConfig(prev => ({ ...prev, isOpen: false }))} 
+      />
       {/* Header with gradient border */}
       <div className="px-6 py-4 bg-bgsecondary border-b border-accent/20 flex justify-between items-center relative">
         <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-accent to-transparent"></div>
