@@ -16,6 +16,8 @@ import TwoFactor from './components/twoFactor';
 // import Leaderboard from './pages/leaderboard';
 // import Recent_maches from './pages/recent_maches';
 import { ChatPage } from "./pages/chat";
+import Game from './pages/Game';
+import Tournament from './pages/Tournament';
 
 
 const AuthRoutes = () => {
@@ -43,6 +45,10 @@ const AuthRoutes = () => {
         <Route path="/recent_maches" element={isLoggedIn ? <Recent_maches page="recent_maches"> </Recent_maches> : <Navigate to = "/signin"/>} /> */}
         <Route path="/chat" element={
             isLoggedIn ? <ChatPage /> : <Navigate to="/signin" /> } />
+        <Route path="/game" element={
+            isLoggedIn ? <Game /> : <Navigate to="/signin" /> } />
+        <Route path="/tournament" element={
+            isLoggedIn ? <Tournament /> : <Navigate to="/signin" /> } />
       </Routes>
     </>
   );
