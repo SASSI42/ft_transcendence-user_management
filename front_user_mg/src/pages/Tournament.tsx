@@ -1,9 +1,9 @@
-// Tournament Page
+// Tournament Page - Uses original mastax design
 import React from 'react';
-import { TournamentView } from '../tournament/TournamentView';
+import { RemoteTournament } from '../gameComponents/RemoteTournament';
 
 const Tournament: React.FC = () => {
-    return <TournamentView />;
+    return <RemoteTournament />;
 };
 
 export default Tournament;

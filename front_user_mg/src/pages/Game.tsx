@@ -1,9 +1,9 @@
-// Game Page
+// Game Page - Uses original mastax design
 import React from 'react';
-import { PongGame } from '../game/PongGame';
+import { RemoteGame } from '../gameComponents/RemoteGame';
 
 const Game: React.FC = () => {
-    return <PongGame />;
+    return <RemoteGame />;
 };
 
 export default Game;

@@ -2,9 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  body {
+    font-family: 'Roboto', sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Oswald', sans-serif;
+  }
+}
+
 @layer utilities {
   .link-hover-effect {
-    @apply transition duration-150 ease-in-out hover:text-accent;
+    @apply transition duration-150 ease-in-out hover:text-accent hover:underline;
   }
   
   .primary-hover {
@@ -38,4 +48,5 @@
   .submission-success {
 	  @apply text-green text-h5body text-left p-2 text-wrap bg-green/15 max-w-[280px] -mt-1 mb-3 rounded-lg;
   }
+
 }
