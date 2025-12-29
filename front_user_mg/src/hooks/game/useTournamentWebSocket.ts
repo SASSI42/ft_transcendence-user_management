@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { WebSocketClient } from "../game/network/wsclient";
+import { WebSocketClient } from "../../game/network/wsclient";
 
 export type TournamentStatus = "registering" | "in_progress" | "completed";
 

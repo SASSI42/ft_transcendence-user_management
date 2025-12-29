@@ -1,9 +1,9 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { GAME_CONFIG } from '../game/config';
-import { LocalMatchState } from '../game/state/models';
-import { useGameLoop } from '../hooks/useGameLoop';
-import { useKeyboard } from '../hooks/useKeyboard';
+import { GAME_CONFIG } from '../../game/config';
+import { LocalMatchState } from '../../game/state/models';
+import { useGameLoop } from '../../hooks/game/useGameLoop';
+import { useKeyboard } from '../../hooks/game/useKeyboard';
 
 interface LocalGameProps {
   pointsToWin?: 11 | 21;

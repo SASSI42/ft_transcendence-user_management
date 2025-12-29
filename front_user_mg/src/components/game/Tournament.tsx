@@ -1,13 +1,13 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TournamentManager } from '../game/tournaments/manager';
-import type { TournamentSnapshot, WinnerSide } from '../game/tournaments/manager';
-import { CurrentMatchDisplay, ChampionDisplay } from '../game/tournaments/UIComponents';
-import { TournamentBracket } from '../game/tournaments/TournamentBracket';
-import { GAME_CONFIG } from '../game/config';
-import { LocalMatchState } from '../game/state/models';
-import { useGameLoop } from '../hooks/useGameLoop';
-import { useKeyboard } from '../hooks/useKeyboard';
+import { TournamentManager } from '../../game/tournaments/manager';
+import type { TournamentSnapshot, WinnerSide } from '../../game/tournaments/manager';
+import { CurrentMatchDisplay, ChampionDisplay } from '../../game/tournaments/UIComponents';
+import { TournamentBracket } from '../../game/tournaments/TournamentBracket';
+import { GAME_CONFIG } from '../../game/config';
+import { LocalMatchState } from '../../game/state/models';
+import { useGameLoop } from '../../hooks/game/useGameLoop';
+import { useKeyboard } from '../../hooks/game/useKeyboard';
 
 type TournamentPhase = 'registration' | 'bracket' | 'playing' | 'champion';
 

@@ -11,8 +11,8 @@ import {
   type PlayerSide,
   type MatchPlayers,
   type InputCommand,
-} from "../hooks/useTournamentWebSocket";
-import { GAME_CONFIG } from "../game/config";
+} from "../../hooks/game/useTournamentWebSocket";
+import { GAME_CONFIG } from "../../game/config";
 
 type TournamentPhase = "lobby" | "create" | "join" | "waiting" | "bracket" | "playing" | "champion";
 

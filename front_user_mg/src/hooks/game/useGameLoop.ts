@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
-import { LocalMatchState } from '../game/state/models';
-import { updateGamePhysics } from '../game/physics/physics';
-import { LocalInputHandler } from '../game/keyboard/bindings';
+import { LocalMatchState } from '../../game/state/models';
+import { updateGamePhysics } from '../../game/physics/physics';
+import { LocalInputHandler } from '../../game/keyboard/bindings';
 
 export function useGameLoop(gameState: LocalMatchState | null) {
   const animationIdRef = useRef<number | undefined>(undefined);

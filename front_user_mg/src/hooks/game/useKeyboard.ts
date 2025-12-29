@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { LocalInputHandler } from '../game/keyboard/bindings';
+import { LocalInputHandler } from '../../game/keyboard/bindings';
 
 export function useKeyboard(enabled: boolean) {
   useEffect(() => {

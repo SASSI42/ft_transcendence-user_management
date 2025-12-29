@@ -7,8 +7,8 @@ import {
   type PlayerSide,
   type MatchPlayers,
   type InputCommand,
-} from "../hooks/useWebSocket";
-import { GAME_CONFIG } from "../game/config";
+} from "../../hooks/game/useWebSocket";
+import { GAME_CONFIG } from "../../game/config";
 
 export function RemoteGame() {
   const navigate = useNavigate();
