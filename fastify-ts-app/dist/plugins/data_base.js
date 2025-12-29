@@ -1,16 +1,17 @@
-import fp from 'fastify-plugin'
-import Database from 'better-sqlite3';
-import path from "path";
-import { FastifyPluginAsync } from "fastify";
-
-const DatabasePlugin: FastifyPluginAsync = async (fastify) => {
-    const dbPath = path.resolve(process.cwd(), 'DATABASE.db');
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const fastify_plugin_1 = __importDefault(require("fastify-plugin"));
+const better_sqlite3_1 = __importDefault(require("better-sqlite3"));
+const path_1 = __importDefault(require("path"));
+const DatabasePlugin = async (fastify) => {
+    const dbPath = path_1.default.resolve(process.cwd(), 'DATABASE.db');
     // Enable verbose logging if you want to see queries
-    const db = new Database(dbPath);
-    
+    const db = new better_sqlite3_1.default(dbPath);
     // Enable Foreign Keys (Critical for cascading deletes in chat)
     db.pragma('foreign_keys = ON');
-
     // 1. Existing Users Table (From User Management)
     db.prepare(`CREATE TABLE IF NOT EXISTS users(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -22,9 +23,7 @@ const DatabasePlugin: FastifyPluginAsync = async (fastify) => {
         Avatar TEXT,
         status NUMERIC
     )`).run();
-
     // 2. Chat & Friends Tables (From Chat Module)
-    
     // Friendships
     db.prepare(`
         CREATE TABLE IF NOT EXISTS friendships (
@@ -39,7 +38,6 @@ const DatabasePlugin: FastifyPluginAsync = async (fastify) => {
             UNIQUE(user_id, friend_id)
         )
     `).run();
-
     // Messages
     db.prepare(`
         CREATE TABLE IF NOT EXISTS messages (
@@ -55,7 +53,6 @@ const DatabasePlugin: FastifyPluginAsync = async (fastify) => {
             FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE
         )
     `).run();
-
     // Game Invites
     db.prepare(`
         CREATE TABLE IF NOT EXISTS game_invites (
@@ -70,7 +67,6 @@ const DatabasePlugin: FastifyPluginAsync = async (fastify) => {
             FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE
         )
     `).run();
-
     // Blocked Users
     db.prepare(`
         CREATE TABLE IF NOT EXISTS blocked_users (
@@ -83,9 +79,7 @@ const DatabasePlugin: FastifyPluginAsync = async (fastify) => {
             UNIQUE(blocker_id, blocked_id)
         )
     `).run();
-
     // 3. Game & Tournament Tables (From Pong Game Integration)
-    
     // Matches table
     db.prepare(`
         CREATE TABLE IF NOT EXISTS matches (
@@ -98,7 +92,6 @@ const DatabasePlugin: FastifyPluginAsync = async (fastify) => {
             updated_at INTEGER NOT NULL
         )
     `).run();
-
     // Match players table (links to existing users table)
     db.prepare(`
         CREATE TABLE IF NOT EXISTS match_players (
@@ -113,7 +106,6 @@ const DatabasePlugin: FastifyPluginAsync = async (fastify) => {
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
     `).run();
-
     // Tournaments table
     db.prepare(`
         CREATE TABLE IF NOT EXISTS tournaments (
@@ -126,7 +118,6 @@ const DatabasePlugin: FastifyPluginAsync = async (fastify) => {
             state_json TEXT NOT NULL
         )
     `).run();
-
     // Tournament participants table
     db.prepare(`
         CREATE TABLE IF NOT EXISTS tournament_participants (
@@ -140,9 +131,8 @@ const DatabasePlugin: FastifyPluginAsync = async (fastify) => {
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
     `).run();
-
     // 4. Create Indexes
- db.exec(`
+    db.exec(`
         CREATE INDEX IF NOT EXISTS idx_friendships_user_id ON friendships(user_id);
         CREATE INDEX IF NOT EXISTS idx_friendships_friend_id ON friendships(friend_id);
         CREATE INDEX IF NOT EXISTS idx_friendships_status ON friendships(status);
@@ -164,29 +154,20 @@ const DatabasePlugin: FastifyPluginAsync = async (fastify) => {
     // 🛠️ 5. SEED SYSTEM USER (The Fix)
     // We insert a user with ID -1 so Foreign Keys don't break.
     const systemUser = db.prepare('SELECT id FROM users WHERE id = ?').get(-1);
-    
     if (!systemUser) {
         db.prepare(`
             INSERT INTO users (id, username, email, password, Avatar, status)
             VALUES (?, ?, ?, ?, ?, ?)
-        `).run(
-            -1, 
-            'System', 
-            'system@pong.com', 
-            'system_secure_pass', // Nobody knows this
-            'https://ui-avatars.com/api/?name=System&background=000&color=fff',
-            'online'
-        );
+        `).run(-1, 'System', 'system@pong.com', 'system_secure_pass', // Nobody knows this
+        'https://ui-avatars.com/api/?name=System&background=000&color=fff', 'online');
         console.log('🤖 System User (ID: -1) created successfully.');
     }
-
     // 3. Decorate Fastify
     fastify.decorate('db', db);
     fastify.addHook('onClose', () => {
         db.close();
     });
-}
-
-export default fp(DatabasePlugin, {
+};
+exports.default = (0, fastify_plugin_1.default)(DatabasePlugin, {
     name: 'database'
-})
+});

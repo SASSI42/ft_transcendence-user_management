@@ -20,6 +20,7 @@ import { gameInvitesRoutes } from './routes/game-invites';
 import { GameInvitesService } from './services/GameInvitesService';
 import { authMiddleware } from './middleware/auth';
 import { socketAuthMiddleware } from './middleware/socketAuth';
+import { pruneExpiredMatches } from './db/matchStorage';
 
 const server = Fastify({
   logger: true
@@ -56,6 +57,15 @@ const start = async () => {
 
     // 4. Start Server
     await server.ready(); // Wait for plugins
+    
+    // Prune expired matches on startup
+    try {
+        const pruned = pruneExpiredMatches(Date.now());
+        server.log.info(`Pruned ${pruned} expired matches on startup`);
+    } catch (error: any) {
+        server.log.error(`Failed to prune expired matches: ${error.message || error}`);
+    }
+    
     server.server.listen({ port: 3000, host: '0.0.0.0' }, () => {
       // if (err) {
       //       server.log.error(err);
