@@ -14,6 +14,11 @@ export const PongGame: React.FC = () => {
     const [matchResult, setMatchResult] = useState<MatchResult | null>(null);
     const [isReady, setIsReady] = useState(false);
 
+    // Ensure socket is connected when component mounts
+    useEffect(() => {
+        socketService.connect();
+    }, []);
+
     // Handle keyboard input
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
         if (phase !== 'playing') return;

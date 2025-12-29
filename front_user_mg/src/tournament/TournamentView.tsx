@@ -16,6 +16,11 @@ export const TournamentView: React.FC = () => {
         capacity: 4
     });
 
+    // Ensure socket is connected when component mounts
+    useEffect(() => {
+        socketService.connect();
+    }, []);
+
     useEffect(() => {
         const socket = socketService.socket;
         if (!socket) return;
