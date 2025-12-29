@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import type { TournamentState } from './types';
 import { socketService } from '../services/socket';
+import { getCurrentUserId } from '../utils/jwt';
 
 interface TournamentLobbyProps {
     tournament: TournamentState | null;
@@ -142,15 +143,3 @@ export const TournamentLobby: React.FC<TournamentLobbyProps> = ({ tournament, on
         </div>
     );
 };
-
-// Helper function to get current user ID (should match your auth system)
-function getCurrentUserId(): number {
-    const token = localStorage.getItem('authToken');
-    if (!token) return -1;
-    try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        return payload.sub || payload.id;
-    } catch {
-        return -1;
-    }
-}

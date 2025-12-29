@@ -5,15 +5,34 @@ import { MatchmakingService } from '../game/matchmaking';
 import { TournamentRegistry } from '../tournament/registry';
 import type { InputCommand } from '../game/gameLogic';
 
-// Global instances (should be passed from main handler or created as singletons)
-let matchmakingService: MatchmakingService;
-let roomManager: GameRoomManager;
-let tournamentRegistry: TournamentRegistry;
+// Service container to manage singleton instances
+class GameServices {
+    private static instance: GameServices | null = null;
+    
+    matchmaking: MatchmakingService;
+    roomManager: GameRoomManager;
+    tournamentRegistry: TournamentRegistry;
 
-export function initializeGameServices(io: Server) {
-    matchmakingService = new MatchmakingService();
-    roomManager = new GameRoomManager(io);
-    tournamentRegistry = new TournamentRegistry(io, roomManager);
+    private constructor(io: Server) {
+        this.matchmaking = new MatchmakingService();
+        this.roomManager = new GameRoomManager(io);
+        this.tournamentRegistry = new TournamentRegistry(io, this.roomManager);
+    }
+
+    static initialize(io: Server): GameServices {
+        if (!GameServices.instance) {
+            GameServices.instance = new GameServices(io);
+        }
+        return GameServices.instance;
+    }
+
+    static getInstance(): GameServices | null {
+        return GameServices.instance;
+    }
+}
+
+export function initializeGameServices(io: Server): GameServices {
+    return GameServices.initialize(io);
 }
 
 export function registerGameHandlers(
@@ -22,18 +41,17 @@ export function registerGameHandlers(
     userId: number,
     username: string
 ) {
-    // Ensure services are initialized
-    if (!matchmakingService || !roomManager || !tournamentRegistry) {
-        initializeGameServices(io);
-    }
+    // Get or initialize services
+    const services = GameServices.getInstance() || initializeGameServices(io);
+    const { matchmaking, roomManager, tournamentRegistry } = services;
 
     // Join matchmaking queue
     socket.on('client:join', () => {
-        const pairing = matchmakingService.enqueue(socket, username, userId);
+        const pairing = matchmaking.enqueue(socket, username, userId);
         if (!pairing) {
             socket.emit('server:queue', {
                 status: 'waiting',
-                position: matchmakingService.pendingCount(),
+                position: matchmaking.pendingCount(),
             });
             return;
         }
@@ -44,7 +62,7 @@ export function registerGameHandlers(
 
     // Leave matchmaking queue
     socket.on('client:leave-queue', () => {
-        const removed = matchmakingService.remove(socket.id);
+        const removed = matchmaking.remove(socket.id);
         if (removed) {
             socket.emit('server:queue', {
                 status: 'left'
@@ -141,15 +159,11 @@ export function registerGameHandlers(
 
     // Cleanup on disconnect
     socket.on('disconnect', () => {
-        matchmakingService.remove(socket.id);
+        matchmaking.remove(socket.id);
         roomManager.handleDisconnect(socket.id);
     });
 }
 
-export function getGameServices() {
-    return {
-        matchmakingService,
-        roomManager,
-        tournamentRegistry
-    };
+export function getGameServices(): GameServices | null {
+    return GameServices.getInstance();
 }

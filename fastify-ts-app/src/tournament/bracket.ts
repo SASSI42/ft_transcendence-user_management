@@ -2,12 +2,22 @@
 import { TournamentMatch, TournamentParticipant } from './types';
 import { v4 as uuidv4 } from 'uuid';
 
+// Fisher-Yates shuffle algorithm for unbiased randomization
+function shuffleArray<T>(array: T[]): T[] {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+}
+
 export function generateBracket(participants: TournamentParticipant[], capacity: number): TournamentMatch[] {
     const bracket: TournamentMatch[] = [];
     const totalRounds = Math.log2(capacity);
     
-    // Shuffle participants
-    const shuffled = [...participants].sort(() => Math.random() - 0.5);
+    // Shuffle participants using Fisher-Yates
+    const shuffled = shuffleArray(participants);
     
     // First round matches
     const firstRoundMatches = capacity / 2;

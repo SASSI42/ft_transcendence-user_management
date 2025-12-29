@@ -80,27 +80,30 @@ export class PongGame {
     update(deltaTime: number = 16) {
         if (this.state.status !== 'playing') return;
 
+        // Normalize deltaTime to 60 FPS baseline (16.67ms per frame)
+        const timeScale = deltaTime / 16.67;
+
         // Update paddles
-        this.updatePaddle(this.state.left);
-        this.updatePaddle(this.state.right);
+        this.updatePaddle(this.state.left, timeScale);
+        this.updatePaddle(this.state.right, timeScale);
 
         // Update ball
-        this.updateBall();
+        this.updateBall(timeScale);
 
         // Check for scoring
         this.checkScoring();
     }
 
-    private updatePaddle(paddle: PaddleState) {
-        paddle.y += paddle.velocity;
+    private updatePaddle(paddle: PaddleState, timeScale: number) {
+        paddle.y += paddle.velocity * timeScale;
         // Clamp to canvas
         paddle.y = Math.max(0, Math.min(CANVAS_HEIGHT - PADDLE_HEIGHT, paddle.y));
     }
 
-    private updateBall() {
+    private updateBall(timeScale: number) {
         const ball = this.state.ball;
-        ball.x += ball.vx;
-        ball.y += ball.vy;
+        ball.x += ball.vx * timeScale;
+        ball.y += ball.vy * timeScale;
 
         // Top/bottom collision
         if (ball.y - BALL_RADIUS <= 0 || ball.y + BALL_RADIUS >= CANVAS_HEIGHT) {
