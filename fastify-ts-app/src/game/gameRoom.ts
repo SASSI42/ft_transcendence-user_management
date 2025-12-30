@@ -137,6 +137,17 @@ export class GameRoom {
     this.gameState.ball.position.x += this.gameState.ball.velocity.x;
     this.gameState.ball.position.y += this.gameState.ball.velocity.y;
 
+    // Cap ball velocity to prevent it from getting too fast
+    const maxSpeed = 0.03;
+    const currentSpeed = Math.sqrt(
+      this.gameState.ball.velocity.x ** 2 + this.gameState.ball.velocity.y ** 2
+    );
+    if (currentSpeed > maxSpeed) {
+      const scale = maxSpeed / currentSpeed;
+      this.gameState.ball.velocity.x *= scale;
+      this.gameState.ball.velocity.y *= scale;
+    }
+
     // Bounce off top/bottom
     if (this.gameState.ball.position.y <= 0 || this.gameState.ball.position.y >= 1) {
       this.gameState.ball.velocity.y *= -1;
@@ -148,21 +159,35 @@ export class GameRoom {
     const paddleWidth = 0.02;
     const paddleHeight = 0.2;
 
-    // Left paddle
+    // Left paddle collision
     if (this.gameState.ball.position.x <= paddleWidth + ballSize) {
       const leftPaddle = this.gameState.paddles.left;
       if (Math.abs(this.gameState.ball.position.y - leftPaddle.position) < paddleHeight / 2) {
-        this.gameState.ball.velocity.x = Math.abs(this.gameState.ball.velocity.x);
+        // Reverse horizontal direction and increase speed slightly
+        this.gameState.ball.velocity.x *= -1.05;
+        
+        // Add vertical deflection based on where ball hits paddle
+        const relativeHit = this.gameState.ball.position.y - leftPaddle.position;
+        const normalizedHit = relativeHit / (paddleHeight / 2);
+        this.gameState.ball.velocity.y += normalizedHit * 0.003; // Add deflection, don't replace
+        
         this.gameState.ball.position.x = paddleWidth + ballSize; // Prevent ball from getting stuck
         this.gameState.rally++;
       }
     }
 
-    // Right paddle
+    // Right paddle collision
     if (this.gameState.ball.position.x >= 1 - paddleWidth - ballSize) {
       const rightPaddle = this.gameState.paddles.right;
       if (Math.abs(this.gameState.ball.position.y - rightPaddle.position) < paddleHeight / 2) {
-        this.gameState.ball.velocity.x = -Math.abs(this.gameState.ball.velocity.x);
+        // Reverse horizontal direction and increase speed slightly
+        this.gameState.ball.velocity.x *= -1.05;
+        
+        // Add vertical deflection based on where ball hits paddle
+        const relativeHit = this.gameState.ball.position.y - rightPaddle.position;
+        const normalizedHit = relativeHit / (paddleHeight / 2);
+        this.gameState.ball.velocity.y += normalizedHit * 0.003; // Add deflection, don't replace
+        
         this.gameState.ball.position.x = 1 - paddleWidth - ballSize; // Prevent ball from getting stuck
         this.gameState.rally++;
       }
