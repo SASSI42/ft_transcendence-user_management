@@ -87,7 +87,7 @@ export interface UseWebSocketReturn {
   roomId: string | null;
   winner: PlayerSide | null;
   errorMessage: string | null;
-  connect: (username: string) => Promise<void>;
+  connect: (username: string, userId?: number) => Promise<void>;
   disconnect: () => void;
   sendInput: (command: InputCommand) => void;
   sendReady: () => void;
@@ -229,7 +229,7 @@ export function useWebSocket(): UseWebSocketReturn {
   }, [connectionStatus, gameState?.status, roomId]);
 
   const connect = useCallback(
-    async (username: string) => {
+    async (username: string, userId?: number) => {
       usernameRef.current = username;
       setConnectionStatus("connecting");
       setErrorMessage(null);
@@ -239,7 +239,8 @@ export function useWebSocket(): UseWebSocketReturn {
         const client = GameSocketAdapter.getInstance();
         await client.connect();
         setupListeners();
-        client.emit("client:join", { username });
+        // Send both username and userId to backend
+        client.emit("client:join", { username, userId });
       } catch (error) {
         console.error("Failed to connect:", error);
         setConnectionStatus("error");

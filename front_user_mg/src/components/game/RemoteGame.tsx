@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../authContext';
 import {
   useWebSocket,
   type ConnectionStatus,
@@ -12,8 +13,7 @@ import { GAME_CONFIG } from "../../game/config";
 
 export function RemoteGame() {
   const navigate = useNavigate();
-  const [username, setUsername] = useState("");
-  const [inputUsername, setInputUsername] = useState("");
+  const { user, isLoggedIn } = useAuth();
   const {
     connectionStatus,
     gameState,
@@ -27,16 +27,15 @@ export function RemoteGame() {
     sendReady,
   } = useWebSocket();
 
-  const handleJoin = useCallback(async () => {
-    if (inputUsername.trim()) {
-      setUsername(inputUsername.trim());
-      await connect(inputUsername.trim());
+  // Auto-connect with authenticated user
+  useEffect(() => {
+    if (isLoggedIn && user && connectionStatus === "disconnected") {
+      connect(user.username, user.id).catch(console.error);
     }
-  }, [inputUsername, connect]);
+  }, [isLoggedIn, user, connectionStatus, connect]);
 
   const handleDisconnect = useCallback(() => {
     disconnect();
-    setUsername("");
   }, [disconnect]);
 
   // Auto-ready when match is ready
@@ -45,6 +44,22 @@ export function RemoteGame() {
       sendReady();
     }
   }, [connectionStatus, gameState?.status, sendReady]);
+
+  // Redirect to login if not authenticated
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-pong-bg flex flex-col items-center justify-center text-slate-200">
+        <h1 className="text-4xl font-oswald font-bold mb-4 text-pong-teal">Authentication Required</h1>
+        <p className="text-xl mb-6">Please log in to play remote games</p>
+        <button
+          onClick={() => navigate('/signin')}
+          className="px-8 py-4 bg-pong-teal hover:brightness-110 text-pong-text-dark font-oswald font-bold text-xl rounded-[12px] transition-all"
+        >
+          Go to Login
+        </button>
+      </div>
+    );
+  }
 
   // Render different UI states based on connection status
   return (
@@ -62,15 +77,12 @@ export function RemoteGame() {
           REMOTE 1V1
         </h1>
 
-      <ConnectionStatusBadge status={connectionStatus} />
+        {/* Show username */}
+        <div className="mb-4 text-xl font-roboto">
+          Playing as: <span className="text-pong-teal font-bold">{user?.username}</span>
+        </div>
 
-      {connectionStatus === "disconnected" && (
-        <JoinForm
-          inputUsername={inputUsername}
-          setInputUsername={setInputUsername}
-          onJoin={handleJoin}
-        />
-      )}
+      <ConnectionStatusBadge status={connectionStatus} />
 
       {connectionStatus === "connecting" && <LoadingSpinner text="Connecting..." />}
 

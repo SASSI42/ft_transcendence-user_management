@@ -151,8 +151,8 @@ export interface UseTournamentWebSocketReturn {
   // Actions
   connect: () => Promise<void>;
   disconnect: () => void;
-  createTournament: (name: string, alias: string, capacity?: number) => void;
-  joinTournament: (code: string, alias: string) => void;
+  createTournament: (name: string, alias: string, userId?: number, capacity?: number) => void;
+  joinTournament: (code: string, alias: string, userId?: number) => void;
   leaveTournament: () => void;
   setReady: (ready: boolean) => void;
   sendInput: (command: InputCommand) => void;
@@ -389,16 +389,16 @@ export function useTournamentWebSocket(): UseTournamentWebSocketReturn {
   }, []);
 
   const createTournament = useCallback(
-    (name: string, playerAlias: string, capacity?: number) => {
+    (name: string, playerAlias: string, userId?: number, capacity?: number) => {
       const client = GameSocketAdapter.getInstance();
-      client.emit("client:tournament:create", { name, alias: playerAlias, capacity });
+      client.emit("client:tournament:create", { name, alias: playerAlias, userId, capacity });
     },
     []
   );
 
-  const joinTournament = useCallback((code: string, playerAlias: string) => {
+  const joinTournament = useCallback((code: string, playerAlias: string, userId?: number) => {
     const client = GameSocketAdapter.getInstance();
-    client.emit("client:tournament:join", { code, alias: playerAlias });
+    client.emit("client:tournament:join", { code, alias: playerAlias, userId });
   }, []);
 
   const leaveTournament = useCallback(() => {

@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../authContext';
 import {
   useTournamentWebSocket,
   type TournamentConnectionStatus,
@@ -19,6 +20,7 @@ type TournamentPhase = "lobby" | "create" | "join" | "waiting" | "bracket" | "pl
 export function RemoteTournament() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, isLoggedIn } = useAuth();
   const queryParams = new URLSearchParams(location.search);
   const codeFromUrl = queryParams.get('code');
   
@@ -81,14 +83,14 @@ export function RemoteTournament() {
   }, [connectionStatus, gameState?.status, sendReady]);
 
   const handleCreateTournament = useCallback(() => {
-    if (!inputAlias.trim() || !inputTournamentName.trim()) return;
-    createTournament(inputTournamentName.trim(), inputAlias.trim(), inputCapacity);
-  }, [inputAlias, inputTournamentName, inputCapacity, createTournament]);
+    if (!inputAlias.trim() || !inputTournamentName.trim() || !isLoggedIn || !user) return;
+    createTournament(inputTournamentName.trim(), inputAlias.trim(), user.id, inputCapacity);
+  }, [inputAlias, inputTournamentName, inputCapacity, isLoggedIn, user, createTournament]);
 
   const handleJoinTournament = useCallback(() => {
-    if (!inputAlias.trim() || !inputCode.trim()) return;
-    joinTournament(inputCode.trim().toUpperCase(), inputAlias.trim());
-  }, [inputAlias, inputCode, joinTournament]);
+    if (!inputAlias.trim() || !inputCode.trim() || !isLoggedIn || !user) return;
+    joinTournament(inputCode.trim().toUpperCase(), inputAlias.trim(), user.id);
+  }, [inputAlias, inputCode, isLoggedIn, user, joinTournament]);
 
   const handleLeaveTournament = useCallback(() => {
     leaveTournament();
@@ -115,6 +117,22 @@ export function RemoteTournament() {
       setReady(!participant.ready);
     }
   }, [tournamentSnapshot, alias, setReady]);
+
+  // Redirect to login if not authenticated
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-pong-bg flex flex-col items-center justify-center text-slate-200">
+        <h1 className="text-4xl font-oswald font-bold mb-4 text-pong-teal">Authentication Required</h1>
+        <p className="text-xl mb-6">Please log in to join tournaments</p>
+        <button
+          onClick={() => navigate('/signin')}
+          className="px-8 py-4 bg-pong-teal hover:brightness-110 text-pong-text-dark font-oswald font-bold text-xl rounded-[12px] transition-all"
+        >
+          Go to Login
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-pong-bg flex flex-col">
