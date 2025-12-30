@@ -255,8 +255,8 @@ export function useWebSocket(): UseWebSocketReturn {
   const disconnect = useCallback(() => {
     const client = GameSocketAdapter.getInstance();
     client.emit("client:leave");
-    client.reset();
-    listenersSetupRef.current = false;
+    // Don't call client.reset() - keep socket connected for reconnecting
+    // Just reset frontend state
     setConnectionStatus("disconnected");
     setGameState(null);
     setPlayerSide(null);

@@ -426,8 +426,34 @@ export function setupSocketHandlers(db: Database, io: Server) {
             try {
                 const gameUserId = socket.data.user?.id;
                 if (gameUserId) {
+                    // Remove from matchmaking queue
                     matchmakingService.dequeue(gameUserId);
                     console.log(`❌ ${gameUserId} left matchmaking queue`);
+                    
+                    // Also check if user is in an active game room and clean it up
+                    const room = gameRoomManager.getRoomByUserId(gameUserId);
+                    if (room) {
+                        const roomId = room.id;
+                        console.log(`🧹 Cleaning up game room ${roomId} for user ${gameUserId}`);
+                        
+                        // Get this player's side
+                        const playerSide = room.getPlayerSide(gameUserId);
+                        if (playerSide) {
+                            // Get opponent's side
+                            const opponentSide: PlayerSide = playerSide === 'left' ? 'right' : 'left';
+                            
+                            // Notify opponent that this player left
+                            // Access the opponent's socket through the room's internal structure
+                            const roomState = room.getState();
+                            const opponentPlayer = (room as any).players?.get(opponentSide);
+                            if (opponentPlayer?.socket) {
+                                opponentPlayer.socket.emit('server:opponent-left', { reason: 'Player left' });
+                            }
+                        }
+                        
+                        // Remove the room completely
+                        gameRoomManager.removeRoom(roomId);
+                    }
                 }
             } catch (error: any) {
                 console.error('Error in client:leave:', error);
