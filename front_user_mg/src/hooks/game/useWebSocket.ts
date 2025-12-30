@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { WebSocketClient } from "../../game/network/wsclient";
+import { GameSocketAdapter } from "../../game/network/gameSocketAdapter";
 
 export type PlayerSide = "left" | "right";
 export type MatchStatus = "waiting" | "ready" | "playing" | "ended";
@@ -122,7 +122,7 @@ export function useWebSocket(): UseWebSocketReturn {
   const listenersSetupRef = useRef(false);
 
   const setupListeners = useCallback(() => {
-    const client = WebSocketClient.getInstance();
+    const client = GameSocketAdapter.getInstance();
     const socket = client.getSocket();
     if (!socket || listenersSetupRef.current) return;
 
@@ -236,7 +236,7 @@ export function useWebSocket(): UseWebSocketReturn {
       setWinner(null);
 
       try {
-        const client = WebSocketClient.getInstance();
+        const client = GameSocketAdapter.getInstance();
         await client.connect();
         setupListeners();
         client.emit("client:join", { username });
@@ -252,7 +252,7 @@ export function useWebSocket(): UseWebSocketReturn {
   );
 
   const disconnect = useCallback(() => {
-    const client = WebSocketClient.getInstance();
+    const client = GameSocketAdapter.getInstance();
     client.emit("client:leave");
     client.reset();
     listenersSetupRef.current = false;
@@ -266,25 +266,25 @@ export function useWebSocket(): UseWebSocketReturn {
   }, []);
 
   const sendInput = useCallback((command: InputCommand) => {
-    const client = WebSocketClient.getInstance();
+    const client = GameSocketAdapter.getInstance();
     client.emit("client:input", { command });
   }, []);
 
   const sendReady = useCallback(() => {
-    const client = WebSocketClient.getInstance();
+    const client = GameSocketAdapter.getInstance();
     client.emit("client:ready", { ready: true });
   }, []);
 
   const rejoin = useCallback((roomId: string, username: string) => {
     usernameRef.current = username;
-    const client = WebSocketClient.getInstance();
+    const client = GameSocketAdapter.getInstance();
     client.emit("client:rejoin", { roomId, username });
   }, []);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      const client = WebSocketClient.getInstance();
+      const client = GameSocketAdapter.getInstance();
       client.reset();
       listenersSetupRef.current = false;
     };

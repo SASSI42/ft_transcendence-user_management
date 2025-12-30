@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { WebSocketClient } from "../../game/network/wsclient";
+import { GameSocketAdapter } from "../../game/network/gameSocketAdapter";
 
 export type TournamentStatus = "registering" | "in_progress" | "completed";
 
@@ -194,7 +194,7 @@ export function useTournamentWebSocket(): UseTournamentWebSocketReturn {
   const listenersSocketIdRef = useRef<string | null>(null);
 
   const setupListeners = useCallback(() => {
-    const client = WebSocketClient.getInstance();
+    const client = GameSocketAdapter.getInstance();
     const socket = client.getSocket();
     const currentSocketId = socket?.id ?? null;
     
@@ -354,7 +354,7 @@ export function useTournamentWebSocket(): UseTournamentWebSocketReturn {
     setErrorMessage(null);
 
     try {
-      const client = WebSocketClient.getInstance();
+      const client = GameSocketAdapter.getInstance();
       await client.connect();
       setupListeners();
       // Set connected status after listeners are set up
@@ -370,7 +370,7 @@ export function useTournamentWebSocket(): UseTournamentWebSocketReturn {
   }, [setupListeners]);
 
   const disconnect = useCallback(() => {
-    const client = WebSocketClient.getInstance();
+    const client = GameSocketAdapter.getInstance();
     client.emit("client:tournament:leave");
     client.reset();
     listenersSocketIdRef.current = null;
@@ -390,19 +390,19 @@ export function useTournamentWebSocket(): UseTournamentWebSocketReturn {
 
   const createTournament = useCallback(
     (name: string, playerAlias: string, capacity?: number) => {
-      const client = WebSocketClient.getInstance();
+      const client = GameSocketAdapter.getInstance();
       client.emit("client:tournament:create", { name, alias: playerAlias, capacity });
     },
     []
   );
 
   const joinTournament = useCallback((code: string, playerAlias: string) => {
-    const client = WebSocketClient.getInstance();
+    const client = GameSocketAdapter.getInstance();
     client.emit("client:tournament:join", { code, alias: playerAlias });
   }, []);
 
   const leaveTournament = useCallback(() => {
-    const client = WebSocketClient.getInstance();
+    const client = GameSocketAdapter.getInstance();
     client.emit("client:tournament:leave");
     setTournamentSnapshot(null);
     setTournamentCode(null);
@@ -413,24 +413,24 @@ export function useTournamentWebSocket(): UseTournamentWebSocketReturn {
   }, []);
 
   const setReady = useCallback((ready: boolean) => {
-    const client = WebSocketClient.getInstance();
+    const client = GameSocketAdapter.getInstance();
     client.emit("client:tournament:ready", { ready });
   }, []);
 
   const sendInput = useCallback((command: InputCommand) => {
-    const client = WebSocketClient.getInstance();
+    const client = GameSocketAdapter.getInstance();
     client.emit("client:input", { command });
   }, []);
 
   const sendReady = useCallback(() => {
-    const client = WebSocketClient.getInstance();
+    const client = GameSocketAdapter.getInstance();
     client.emit("client:ready", { ready: true });
   }, []);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      const client = WebSocketClient.getInstance();
+      const client = GameSocketAdapter.getInstance();
       client.reset();
       listenersSocketIdRef.current = null;
     };
