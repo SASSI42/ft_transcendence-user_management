@@ -11,9 +11,12 @@ export class GameSocketAdapter {
   private static instance: GameSocketAdapter;
   private reconnectCallbacks = new Set<() => void>();
   private disconnectCallbacks = new Set<(reason: string) => void>();
+  private listenersSetup = false;
+  private disconnectHandler?: (reason: string) => void;
+  private connectHandler?: () => void;
 
   private constructor() {
-    this.setupListeners();
+    // Don't setup listeners here - wait until connect() is called
   }
 
   public static getInstance(): GameSocketAdapter {
@@ -24,23 +27,35 @@ export class GameSocketAdapter {
   }
 
   private setupListeners(): void {
+    // Only setup once
+    if (this.listenersSetup) {
+      return;
+    }
+
     // Ensure socket is connected
     if (!socketService.socket) {
       socketService.connect();
     }
 
     if (socketService.socket) {
-      socketService.socket.on('disconnect', (reason: string) => {
+      // Store handlers so we can remove them later
+      this.disconnectHandler = (reason: string) => {
         this.runHandlers(this.disconnectCallbacks, [reason], 'disconnect');
-      });
+      };
 
-      socketService.socket.on('connect', () => {
+      this.connectHandler = () => {
         this.runHandlers(this.reconnectCallbacks, [], 'reconnect');
-      });
+      };
+
+      socketService.socket.on('disconnect', this.disconnectHandler);
+      socketService.socket.on('connect', this.connectHandler);
+      this.listenersSetup = true;
     }
   }
 
   public async connect(): Promise<Socket> {
+    this.setupListeners();
+
     // Use existing socket connection
     if (!socketService.socket || !socketService.socket.connected) {
       socketService.connect();
@@ -53,14 +68,20 @@ export class GameSocketAdapter {
         return;
       }
 
+      const maxAttempts = 50; // 5 seconds max wait
+      let attempts = 0;
       const timeout = setTimeout(() => {
         reject(new Error('Socket connection timeout'));
       }, 5000);
 
       const checkConnection = () => {
+        attempts++;
         if (socketService.socket?.connected) {
           clearTimeout(timeout);
           resolve(socketService.socket);
+        } else if (attempts >= maxAttempts) {
+          clearTimeout(timeout);
+          reject(new Error('Socket connection timeout after max attempts'));
         } else {
           setTimeout(checkConnection, 100);
         }
@@ -131,8 +152,21 @@ export class GameSocketAdapter {
   }
 
   public reset(): void {
+    // Clean up event listeners
+    if (socketService.socket && this.listenersSetup) {
+      if (this.disconnectHandler) {
+        socketService.socket.off('disconnect', this.disconnectHandler);
+      }
+      if (this.connectHandler) {
+        socketService.socket.off('connect', this.connectHandler);
+      }
+    }
+
     // Don't disconnect the main socket, just clean up game-specific listeners
     this.reconnectCallbacks.clear();
     this.disconnectCallbacks.clear();
+    this.listenersSetup = false;
+    this.disconnectHandler = undefined;
+    this.connectHandler = undefined;
   }
 }
