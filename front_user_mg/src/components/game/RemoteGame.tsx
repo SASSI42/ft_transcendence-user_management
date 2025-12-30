@@ -38,9 +38,10 @@ export function RemoteGame() {
     disconnect();
   }, [disconnect]);
 
-  // Auto-ready when match is ready
+  // Auto-ready when match is found
   useEffect(() => {
-    if (connectionStatus === "matched" && gameState?.status === "ready") {
+    if (connectionStatus === "matched" && gameState?.status === "waiting") {
+      console.log("🎮 Auto-marking player as ready");
       sendReady();
     }
   }, [connectionStatus, gameState?.status, sendReady]);
