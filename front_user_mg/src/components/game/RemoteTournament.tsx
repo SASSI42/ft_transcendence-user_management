@@ -83,7 +83,32 @@ export function RemoteTournament() {
   }, [connectionStatus, gameState?.status, sendReady]);
 
   const handleCreateTournament = useCallback(() => {
-    if (!inputAlias.trim() || !inputTournamentName.trim() || !isLoggedIn || !user) return;
+    console.log("🚀 CREATE TOURNAMENT - Handler Called", {
+      inputAlias: inputAlias.trim(),
+      inputTournamentName: inputTournamentName.trim(),
+      inputCapacity,
+      isLoggedIn,
+      user: user ? { id: user.id, username: user.username } : null,
+      willProceed: !!(inputAlias.trim() && inputTournamentName.trim() && isLoggedIn && user),
+    });
+    
+    if (!inputAlias.trim() || !inputTournamentName.trim() || !isLoggedIn || !user) {
+      console.error("❌ CREATE TOURNAMENT - Validation failed", {
+        aliasEmpty: !inputAlias.trim(),
+        nameEmpty: !inputTournamentName.trim(),
+        notLoggedIn: !isLoggedIn,
+        noUser: !user,
+      });
+      return;
+    }
+    
+    console.log("✅ CREATE TOURNAMENT - Calling createTournament", {
+      name: inputTournamentName.trim(),
+      alias: inputAlias.trim(),
+      userId: user.id,
+      capacity: inputCapacity,
+    });
+    
     createTournament(inputTournamentName.trim(), inputAlias.trim(), user.id, inputCapacity);
   }, [inputAlias, inputTournamentName, inputCapacity, isLoggedIn, user, createTournament]);
 
@@ -192,6 +217,7 @@ export function RemoteTournament() {
           onBack={() => setUiPhase("lobby")}
           isAuthenticated={isLoggedIn}
           hasUser={!!user}
+          userName={user?.username || null}
         />
       )}
 
@@ -312,6 +338,7 @@ interface CreateTournamentFormProps {
   onBack: () => void;
   isAuthenticated: boolean;
   hasUser: boolean;
+  userName: string | null;
 }
 
 function CreateTournamentForm({
@@ -325,9 +352,19 @@ function CreateTournamentForm({
   onBack,
   isAuthenticated,
   hasUser,
+  userName,
 }: CreateTournamentFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("🎮 CREATE TOURNAMENT - Form Submit", {
+      inputAlias: inputAlias.trim(),
+      inputTournamentName: inputTournamentName.trim(),
+      inputCapacity,
+      isAuthenticated,
+      hasUser,
+      userName,
+      canSubmit: inputAlias.trim() && inputTournamentName.trim() && isAuthenticated && hasUser,
+    });
     onSubmit();
   };
 
@@ -396,6 +433,17 @@ function CreateTournamentForm({
           </button>
         </div>
       </div>
+
+      {/* Authentication Status Display */}
+      {!canSubmit && (
+        <div className="mb-4 text-sm text-center">
+          {!inputAlias.trim() && <p className="text-yellow-500">⚠️ Please enter your alias</p>}
+          {!inputTournamentName.trim() && <p className="text-yellow-500">⚠️ Please enter tournament name</p>}
+          {!isAuthenticated && <p className="text-red-500">❌ You must be logged in</p>}
+          {!hasUser && <p className="text-red-500">❌ User data not loaded</p>}
+          {userName && <p className="text-green-500">✅ Logged in as: {userName}</p>}
+        </div>
+      )}
 
       <div className="flex gap-4">
         <button
