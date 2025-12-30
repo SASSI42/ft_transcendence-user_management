@@ -5,7 +5,7 @@ import { FriendsService } from '../services/FriendsService';
 import { AuthenticatedSocket } from '../middleware/socketAuth';
 import { Database } from 'better-sqlite3';
 import { MatchmakingService } from '../game/matchmaking';
-import { GameRoomManager, type InputCommand } from '../game/gameRoom';
+import { GameRoomManager, type InputCommand, type PlayerSide } from '../game/gameRoom';
 
 const onlineUsers = new Map<number, string>();
 
