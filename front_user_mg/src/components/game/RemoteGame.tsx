@@ -115,12 +115,12 @@ export function RemoteGame() {
           />
         )}
 
-        {connectionStatus === "ended" && gameState && players && (
+        {connectionStatus === "ended" && gameState && players && user && (
           <GameOverView
             gameState={gameState}
             players={players}
             winner={winner}
-            username={username}
+            username={user.username}
             onPlayAgain={handleDisconnect}
           />
         )}
