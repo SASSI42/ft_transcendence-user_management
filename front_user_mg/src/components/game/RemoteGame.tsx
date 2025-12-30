@@ -376,16 +376,18 @@ interface RemoteGameCanvasProps {
 function RemoteGameCanvas({ gameState }: RemoteGameCanvasProps) {
   const { arenaWidth, arenaHeight, paddle, ball } = GAME_CONFIG;
 
-  // Ball position
-  const ballX = gameState.ball.position.x;
-  const ballY = gameState.ball.position.y;
+  // Backend sends normalized coordinates (0 to 1), convert to pixels
+  // Ball position - convert from normalized (0-1) to pixels
+  const ballX = gameState.ball.position.x * arenaWidth;
+  const ballY = gameState.ball.position.y * arenaHeight;
   const ballSize = ball.radius * 2;
 
-  // Paddle positions - positioned at edges of arena
-  const leftPaddleX = 0;
-  const rightPaddleX = arenaWidth - paddle.width;
-  const leftPaddleY = gameState.paddles.left.position;
-  const rightPaddleY = gameState.paddles.right.position;
+  // Paddle positions - convert from normalized (0-1) to pixels
+  // Paddles are at the edges of the arena
+  const leftPaddleX = paddle.offset; // Small offset from left edge
+  const rightPaddleX = arenaWidth - paddle.width - paddle.offset; // Small offset from right edge
+  const leftPaddleY = gameState.paddles.left.position * arenaHeight;
+  const rightPaddleY = gameState.paddles.right.position * arenaHeight;
 
   return (
     <div
@@ -423,7 +425,7 @@ function RemoteGameCanvas({ gameState }: RemoteGameCanvasProps) {
 
       {/* Left Paddle */}
       <div
-        className="absolute bg-white rounded-full"
+        className="absolute bg-white rounded-md"
         style={{
           left: leftPaddleX,
           top: leftPaddleY - paddle.height / 2,
@@ -435,7 +437,7 @@ function RemoteGameCanvas({ gameState }: RemoteGameCanvasProps) {
 
       {/* Right Paddle */}
       <div
-        className="absolute bg-white rounded-full"
+        className="absolute bg-white rounded-md"
         style={{
           left: rightPaddleX,
           top: rightPaddleY - paddle.height / 2,
