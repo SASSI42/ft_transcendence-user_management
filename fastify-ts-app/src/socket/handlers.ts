@@ -377,7 +377,8 @@ export function setupSocketHandlers(db: Database, io: Server) {
         
         socket.on('client:join', async (data: { username: string; userId?: number }) => {
             try {
-                const gameUserId = socket.data.user?.id || data.userId;
+                // Only use authenticated userId from socket
+                const gameUserId = socket.data.user?.id;
                 const username = data.username;
 
                 if (!gameUserId || !username) {

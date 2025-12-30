@@ -153,6 +153,7 @@ export class GameRoom {
       const leftPaddle = this.gameState.paddles.left;
       if (Math.abs(this.gameState.ball.position.y - leftPaddle.position) < paddleHeight / 2) {
         this.gameState.ball.velocity.x = Math.abs(this.gameState.ball.velocity.x);
+        this.gameState.ball.position.x = paddleWidth + ballSize; // Prevent ball from getting stuck
         this.gameState.rally++;
       }
     }
@@ -162,6 +163,7 @@ export class GameRoom {
       const rightPaddle = this.gameState.paddles.right;
       if (Math.abs(this.gameState.ball.position.y - rightPaddle.position) < paddleHeight / 2) {
         this.gameState.ball.velocity.x = -Math.abs(this.gameState.ball.velocity.x);
+        this.gameState.ball.position.x = 1 - paddleWidth - ballSize; // Prevent ball from getting stuck
         this.gameState.rally++;
       }
     }
@@ -240,7 +242,7 @@ export class GameRoomManager {
   private rooms: Map<string, GameRoom> = new Map();
 
   public createRoom(player1: { socket: Socket; userId: number; username: string }, player2: { socket: Socket; userId: number; username: string }): GameRoom {
-    const roomId = `room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const roomId = `room_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     const room = new GameRoom(roomId, player1, player2);
     this.rooms.set(roomId, room);
 
