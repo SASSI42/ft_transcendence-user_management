@@ -1,7 +1,7 @@
 # Game Backend Handlers - TODO
 
 ## Overview
-The frontend game components are now properly connected to the existing authenticated socket service. However, the backend needs to implement game-specific event handlers.
+The frontend game components are now properly connected to the existing authenticated socket service and automatically use the logged-in user's credentials. The backend needs to implement game-specific event handlers.
 
 ## Required Backend Event Handlers
 
@@ -11,8 +11,21 @@ Add these handlers to `fastify-ts-app/src/socket/handlers.ts`:
 
 ```typescript
 // Client wants to join the matchmaking queue
-socket.on('client:join', async (data: { username: string }) => {
-    // TODO: Add user to matchmaking queue
+socket.on('client:join', async (data: { username: string; userId?: number }) => {
+    // ✅ Frontend now sends BOTH username and userId
+    const userId = socket.data.userId || data.userId; // Use authenticated userId
+    const username = data.username;
+    
+    if (!userId || !username) {
+        socket.emit('server:error', { 
+            message: 'User must be authenticated to join' 
+        });
+        return;
+    }
+    
+    console.log(`User ${username} (ID: ${userId}) joining matchmaking`);
+    
+    // TODO: Add user to matchmaking queue with userId
     // - Store userId and username in queue
     // - If another player is waiting, match them
     // - Emit 'server:queue' with status: 'waiting' or 'matched'
@@ -54,18 +67,35 @@ socket.on('client:ready', async (data: { ready: boolean }) => {
 
 ```typescript
 // Create tournament
-socket.on('client:tournament:create', async (data: { name: string; alias: string; capacity?: number }) => {
+socket.on('client:tournament:create', async (data: { name: string; alias: string; userId?: number; capacity?: number }) => {
+    // ✅ Frontend now sends userId
+    const userId = socket.data.userId || data.userId;
+    const username = socket.data.username;
+    
+    if (!userId) {
+        socket.emit('server:error', { message: 'Authentication required' });
+        return;
+    }
+    
     // TODO: Create tournament
     // - Generate unique tournament code
-    // - Add creator as first participant
+    // - Add creator as first participant with userId
     // - Emit 'server:tournament:created'
 });
 
 // Join tournament
-socket.on('client:tournament:join', async (data: { code: string; alias: string }) => {
+socket.on('client:tournament:join', async (data: { code: string; alias: string; userId?: number }) => {
+    // ✅ Frontend now sends userId
+    const userId = socket.data.userId || data.userId;
+    
+    if (!userId) {
+        socket.emit('server:error', { message: 'Authentication required' });
+        return;
+    }
+    
     // TODO: Join existing tournament
     // - Verify tournament exists and has space
-    // - Add participant
+    // - Add participant with userId
     // - Broadcast 'server:tournament:snapshot'
 });
 
@@ -120,26 +150,32 @@ socket.on('client:tournament:leave', async () => {
 
 ## Implementation Notes
 
-1. **Game State Management**: Need to maintain game rooms with:
+1. **User Authentication**: Frontend now automatically sends userId with all game events
+   - `client:join`: `{ username: string, userId?: number }`
+   - `client:tournament:create`: `{ name: string, alias: string, userId?: number, capacity?: number }`
+   - `client:tournament:join`: `{ code: string, alias: string, userId?: number }`
+
+2. **Game State Management**: Need to maintain game rooms with:
    - Ball position and velocity
    - Paddle positions
    - Scores
-   - Player connections
+   - Player connections (indexed by userId)
 
-2. **Physics**: Server-authoritative game loop (60 fps)
+3. **Physics**: Server-authoritative game loop (60 fps)
    - Ball movement and collisions
    - Paddle movement based on input
    - Score tracking
 
-3. **Matchmaking Queue**: Simple FIFO queue
-   - Match first two players in queue
+4. **Matchmaking Queue**: Simple FIFO queue
+   - Match first two players in queue by userId
    - Create game room
    - Notify both players
 
-4. **Tournament Bracket**: Elimination tournament
-   - Track participants and matches
+5. **Tournament Bracket**: Elimination tournament
+   - Track participants by userId
    - Manage bracket progression
    - Handle disconnections gracefully
+   - Allow custom display alias separate from username
 
 ## Testing Connection
 
@@ -158,6 +194,9 @@ if (socket) {
 ## Status
 
 ✅ Frontend socket connection fixed - uses existing authenticated socket on port 3000
+✅ Frontend authentication integrated - automatically uses logged-in user
+✅ Frontend sends userId with all game events
 ❌ Backend game handlers - need to be implemented
+❌ Backend needs to accept and use userId in matchmaking
 ❌ Game physics server - need to implement server-side game loop
 ❌ Tournament management - need to implement bracket and match tracking
