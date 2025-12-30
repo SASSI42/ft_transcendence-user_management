@@ -190,6 +190,8 @@ export function RemoteTournament() {
           setInputCapacity={setInputCapacity}
           onSubmit={handleCreateTournament}
           onBack={() => setUiPhase("lobby")}
+          isAuthenticated={isLoggedIn}
+          hasUser={!!user}
         />
       )}
 
@@ -308,6 +310,8 @@ interface CreateTournamentFormProps {
   setInputCapacity: (value: 4 | 8) => void;
   onSubmit: () => void;
   onBack: () => void;
+  isAuthenticated: boolean;
+  hasUser: boolean;
 }
 
 function CreateTournamentForm({
@@ -319,13 +323,15 @@ function CreateTournamentForm({
   setInputCapacity,
   onSubmit,
   onBack,
+  isAuthenticated,
+  hasUser,
 }: CreateTournamentFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit();
   };
 
-  const canSubmit = inputAlias.trim() && inputTournamentName.trim();
+  const canSubmit = inputAlias.trim() && inputTournamentName.trim() && isAuthenticated && hasUser;
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-md p-6 bg-bg-secondary rounded-2xl border border-slate-600/30">
