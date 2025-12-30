@@ -360,8 +360,12 @@ function CreateTournamentForm({
         <div className="flex gap-4">
           <button
             type="button"
-            onClick={() => setInputCapacity(4)}
-            className={`flex-1 px-4 py-2 rounded-xl transition-colors font-oswald ${
+            onClick={(e) => {
+              e.stopPropagation();
+              console.log('Setting capacity to 4');
+              setInputCapacity(4);
+            }}
+            className={`flex-1 px-4 py-2 rounded-xl transition-colors font-oswald cursor-pointer ${
               inputCapacity === 4
                 ? "bg-cyan-neon text-bg-primary font-bold"
                 : "bg-bg-primary border border-slate-600/30 text-slate-200 hover:bg-dark-700"
@@ -371,8 +375,12 @@ function CreateTournamentForm({
           </button>
           <button
             type="button"
-            onClick={() => setInputCapacity(8)}
-            className={`flex-1 px-4 py-2 rounded-xl transition-colors font-oswald ${
+            onClick={(e) => {
+              e.stopPropagation();
+              console.log('Setting capacity to 8');
+              setInputCapacity(8);
+            }}
+            className={`flex-1 px-4 py-2 rounded-xl transition-colors font-oswald cursor-pointer ${
               inputCapacity === 8
                 ? "bg-cyan-neon text-bg-primary font-bold"
                 : "bg-bg-primary border border-slate-600/30 text-slate-200 hover:bg-dark-700"
