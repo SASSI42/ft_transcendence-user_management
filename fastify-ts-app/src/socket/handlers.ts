@@ -6,6 +6,8 @@ import { AuthenticatedSocket } from '../middleware/socketAuth';
 import { Database } from 'better-sqlite3';
 import { MatchmakingService } from '../game/matchmaking';
 import { GameRoomManager, type InputCommand, type PlayerSide } from '../game/gameRoom';
+import { TournamentRegistry } from "../tournament/registry";
+import { normalizeCode, sanitizeAlias as sanitizeTournamentAlias } from "../tournament/utils";
 
 const onlineUsers = new Map<number, string>();
 

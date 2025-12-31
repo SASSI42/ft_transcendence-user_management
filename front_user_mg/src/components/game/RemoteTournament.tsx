@@ -109,12 +109,14 @@ export function RemoteTournament() {
       capacity: inputCapacity,
     });
     
-    createTournament(inputTournamentName.trim(), inputAlias.trim(), user.id, inputCapacity);
+    // createTournament(inputTournamentName.trim(), inputAlias.trim(), user.id, inputCapacity);
+    createTournament(inputTournamentName.trim(), inputAlias.trim(), inputCapacity);
   }, [inputAlias, inputTournamentName, inputCapacity, isLoggedIn, user, createTournament]);
 
   const handleJoinTournament = useCallback(() => {
     if (!inputAlias.trim() || !inputCode.trim() || !isLoggedIn || !user) return;
-    joinTournament(inputCode.trim().toUpperCase(), inputAlias.trim(), user.id);
+    // joinTournament(inputCode.trim().toUpperCase(), inputAlias.trim(), user.id);
+    joinTournament(inputCode.trim().toUpperCase(), inputAlias.trim());
   }, [inputAlias, inputCode, isLoggedIn, user, joinTournament]);
 
   const handleLeaveTournament = useCallback(() => {
