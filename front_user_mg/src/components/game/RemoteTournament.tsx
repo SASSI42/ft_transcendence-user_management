@@ -87,13 +87,23 @@ export function RemoteTournament() {
       inputAlias: inputAlias.trim(),
       inputTournamentName: inputTournamentName.trim(),
       inputCapacity,
-      willProceed: !!(inputAlias.trim() && inputTournamentName.trim()),
+      userId: user?.id,
+      isLoggedIn,
+      willProceed: !!(inputAlias.trim() && inputTournamentName.trim() && isLoggedIn && user),
     });
     
     if (!inputAlias.trim() || !inputTournamentName.trim()) {
-      console.error("❌ CREATE TOURNAMENT - Validation failed", {
+      console.error("❌ CREATE TOURNAMENT - Validation failed: empty fields", {
         aliasEmpty: !inputAlias.trim(),
         nameEmpty: !inputTournamentName.trim(),
+      });
+      return;
+    }
+    
+    if (!isLoggedIn || !user) {
+      console.error("❌ CREATE TOURNAMENT - Validation failed: not authenticated", {
+        isLoggedIn,
+        hasUser: !!user,
       });
       return;
     }
@@ -101,16 +111,46 @@ export function RemoteTournament() {
     console.log("✅ CREATE TOURNAMENT - Calling createTournament", {
       name: inputTournamentName.trim(),
       alias: inputAlias.trim(),
+      userId: user.id,
       capacity: inputCapacity,
     });
     
-    createTournament(inputTournamentName.trim(), inputAlias.trim(), inputCapacity);
-  }, [inputAlias, inputTournamentName, inputCapacity, createTournament]);
+    createTournament(inputTournamentName.trim(), inputAlias.trim(), user.id, inputCapacity);
+  }, [inputAlias, inputTournamentName, inputCapacity, createTournament, user, isLoggedIn]);
 
   const handleJoinTournament = useCallback(() => {
-    if (!inputAlias.trim() || !inputCode.trim()) return;
-    joinTournament(inputCode.trim().toUpperCase(), inputAlias.trim());
-  }, [inputAlias, inputCode, joinTournament]);
+    console.log("🚀 JOIN TOURNAMENT - Handler Called", {
+      inputAlias: inputAlias.trim(),
+      inputCode: inputCode.trim(),
+      userId: user?.id,
+      isLoggedIn,
+      willProceed: !!(inputAlias.trim() && inputCode.trim() && isLoggedIn && user),
+    });
+    
+    if (!inputAlias.trim() || !inputCode.trim()) {
+      console.error("❌ JOIN TOURNAMENT - Validation failed: empty fields", {
+        aliasEmpty: !inputAlias.trim(),
+        codeEmpty: !inputCode.trim(),
+      });
+      return;
+    }
+    
+    if (!isLoggedIn || !user) {
+      console.error("❌ JOIN TOURNAMENT - Validation failed: not authenticated", {
+        isLoggedIn,
+        hasUser: !!user,
+      });
+      return;
+    }
+    
+    console.log("✅ JOIN TOURNAMENT - Calling joinTournament", {
+      code: inputCode.trim().toUpperCase(),
+      alias: inputAlias.trim(),
+      userId: user.id,
+    });
+    
+    joinTournament(inputCode.trim().toUpperCase(), inputAlias.trim(), user.id);
+  }, [inputAlias, inputCode, joinTournament, user, isLoggedIn]);
 
   const handleLeaveTournament = useCallback(() => {
     leaveTournament();
@@ -210,6 +250,8 @@ export function RemoteTournament() {
           setInputCapacity={setInputCapacity}
           onSubmit={handleCreateTournament}
           onBack={() => setUiPhase("lobby")}
+          isAuthenticated={isLoggedIn}
+          userName={user?.username ?? null}
         />
       )}
 
@@ -222,6 +264,8 @@ export function RemoteTournament() {
           setInputCode={setInputCode}
           onSubmit={handleJoinTournament}
           onBack={() => setUiPhase("lobby")}
+          isAuthenticated={isLoggedIn}
+          userName={user?.username ?? null}
         />
       )}
 
@@ -328,6 +372,8 @@ interface CreateTournamentFormProps {
   setInputCapacity: (value: 4 | 8) => void;
   onSubmit: () => void;
   onBack: () => void;
+  isAuthenticated: boolean;
+  userName: string | null;
 }
 
 function CreateTournamentForm({
@@ -339,6 +385,8 @@ function CreateTournamentForm({
   setInputCapacity,
   onSubmit,
   onBack,
+  isAuthenticated,
+  userName,
 }: CreateTournamentFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -351,11 +399,23 @@ function CreateTournamentForm({
     onSubmit();
   };
 
-  const canSubmit = inputAlias.trim() && inputTournamentName.trim();
+  const canSubmit = inputAlias.trim() && inputTournamentName.trim() && isAuthenticated;
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-md p-6 bg-bg-secondary rounded-2xl border border-slate-600/30">
       <h2 className="text-2xl font-oswald font-bold text-cyan-neon mb-4">Create Tournament</h2>
+      
+      {/* Authentication Status */}
+      {!isAuthenticated && (
+        <div className="mb-4 p-3 bg-red-900/20 border border-red-500/50 rounded text-red-400 text-sm">
+          ❌ You must be logged in to create a tournament
+        </div>
+      )}
+      {isAuthenticated && userName && (
+        <div className="mb-4 p-3 bg-green-900/20 border border-green-500/50 rounded text-green-400 text-sm">
+          ✅ Logged in as: {userName}
+        </div>
+      )}
 
       <div className="mb-4">
         <label className="block text-gray-300 text-sm mb-2 font-roboto">Tournament Name</label>
@@ -457,6 +517,8 @@ interface JoinTournamentFormProps {
   setInputCode: (value: string) => void;
   onSubmit: () => void;
   onBack: () => void;
+  isAuthenticated: boolean;
+  userName: string | null;
 }
 
 function JoinTournamentForm({
@@ -466,17 +528,31 @@ function JoinTournamentForm({
   setInputCode,
   onSubmit,
   onBack,
+  isAuthenticated,
+  userName,
 }: JoinTournamentFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit();
   };
 
-  const canSubmit = inputAlias.trim() && inputCode.trim();
+  const canSubmit = inputAlias.trim() && inputCode.trim() && isAuthenticated;
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-md p-6 bg-bg-secondary rounded-2xl border border-slate-600/30">
       <h2 className="text-2xl font-oswald font-bold text-cyan-neon mb-4">Join Tournament</h2>
+
+      {/* Authentication Status */}
+      {!isAuthenticated && (
+        <div className="mb-4 p-3 bg-red-900/20 border border-red-500/50 rounded text-red-400 text-sm">
+          ❌ You must be logged in to join a tournament
+        </div>
+      )}
+      {isAuthenticated && userName && (
+        <div className="mb-4 p-3 bg-green-900/20 border border-green-500/50 rounded text-green-400 text-sm">
+          ✅ Logged in as: {userName}
+        </div>
+      )}
 
       <div className="mb-4">
         <label className="block text-gray-300 text-sm mb-2 font-roboto">Tournament Code</label>
