@@ -87,17 +87,13 @@ export function RemoteTournament() {
       inputAlias: inputAlias.trim(),
       inputTournamentName: inputTournamentName.trim(),
       inputCapacity,
-      isLoggedIn,
-      user: user ? { id: user.id, username: user.username } : null,
-      willProceed: !!(inputAlias.trim() && inputTournamentName.trim() && isLoggedIn && user),
+      willProceed: !!(inputAlias.trim() && inputTournamentName.trim()),
     });
     
-    if (!inputAlias.trim() || !inputTournamentName.trim() || !isLoggedIn || !user) {
+    if (!inputAlias.trim() || !inputTournamentName.trim()) {
       console.error("❌ CREATE TOURNAMENT - Validation failed", {
         aliasEmpty: !inputAlias.trim(),
         nameEmpty: !inputTournamentName.trim(),
-        notLoggedIn: !isLoggedIn,
-        noUser: !user,
       });
       return;
     }
@@ -105,19 +101,16 @@ export function RemoteTournament() {
     console.log("✅ CREATE TOURNAMENT - Calling createTournament", {
       name: inputTournamentName.trim(),
       alias: inputAlias.trim(),
-      userId: user.id,
       capacity: inputCapacity,
     });
     
-    // createTournament(inputTournamentName.trim(), inputAlias.trim(), user.id, inputCapacity);
     createTournament(inputTournamentName.trim(), inputAlias.trim(), inputCapacity);
-  }, [inputAlias, inputTournamentName, inputCapacity, isLoggedIn, user, createTournament]);
+  }, [inputAlias, inputTournamentName, inputCapacity, createTournament]);
 
   const handleJoinTournament = useCallback(() => {
-    if (!inputAlias.trim() || !inputCode.trim() || !isLoggedIn || !user) return;
-    // joinTournament(inputCode.trim().toUpperCase(), inputAlias.trim(), user.id);
+    if (!inputAlias.trim() || !inputCode.trim()) return;
     joinTournament(inputCode.trim().toUpperCase(), inputAlias.trim());
-  }, [inputAlias, inputCode, isLoggedIn, user, joinTournament]);
+  }, [inputAlias, inputCode, joinTournament]);
 
   const handleLeaveTournament = useCallback(() => {
     leaveTournament();
@@ -217,9 +210,6 @@ export function RemoteTournament() {
           setInputCapacity={setInputCapacity}
           onSubmit={handleCreateTournament}
           onBack={() => setUiPhase("lobby")}
-          isAuthenticated={isLoggedIn}
-          hasUser={!!user}
-          userName={user?.username || null}
         />
       )}
 
@@ -338,9 +328,6 @@ interface CreateTournamentFormProps {
   setInputCapacity: (value: 4 | 8) => void;
   onSubmit: () => void;
   onBack: () => void;
-  isAuthenticated: boolean;
-  hasUser: boolean;
-  userName: string | null;
 }
 
 function CreateTournamentForm({
@@ -352,9 +339,6 @@ function CreateTournamentForm({
   setInputCapacity,
   onSubmit,
   onBack,
-  isAuthenticated,
-  hasUser,
-  userName,
 }: CreateTournamentFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -362,15 +346,12 @@ function CreateTournamentForm({
       inputAlias: inputAlias.trim(),
       inputTournamentName: inputTournamentName.trim(),
       inputCapacity,
-      isAuthenticated,
-      hasUser,
-      userName,
-      canSubmit: inputAlias.trim() && inputTournamentName.trim() && isAuthenticated && hasUser,
+      canSubmit: inputAlias.trim() && inputTournamentName.trim(),
     });
     onSubmit();
   };
 
-  const canSubmit = inputAlias.trim() && inputTournamentName.trim() && isAuthenticated && hasUser;
+  const canSubmit = inputAlias.trim() && inputTournamentName.trim();
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-md p-6 bg-bg-secondary rounded-2xl border border-slate-600/30">
@@ -436,14 +417,11 @@ function CreateTournamentForm({
         </div>
       </div>
 
-      {/* Authentication Status Display */}
+      {/* Validation Status Display */}
       {!canSubmit && (
         <div className="mb-4 text-sm text-center">
           {!inputAlias.trim() && <p className="text-yellow-500">⚠️ Please enter your alias</p>}
           {!inputTournamentName.trim() && <p className="text-yellow-500">⚠️ Please enter tournament name</p>}
-          {!isAuthenticated && <p className="text-red-500">❌ You must be logged in</p>}
-          {!hasUser && <p className="text-red-500">❌ User data not loaded</p>}
-          {userName && <p className="text-green-500">✅ Logged in as: {userName}</p>}
         </div>
       )}
 
