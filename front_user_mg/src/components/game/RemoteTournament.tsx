@@ -23,9 +23,9 @@ export function RemoteTournament() {
   const { user, isLoggedIn } = useAuth();
   const queryParams = new URLSearchParams(location.search);
   const codeFromUrl = queryParams.get('code');
-  
+
   const [uiPhase, setUiPhase] = useState<"lobby" | "create" | "join">(codeFromUrl ? "join" : "lobby");
-  const [inputAlias, setInputAlias] = useState("");
+
   const [inputCode, setInputCode] = useState(codeFromUrl || "");
   const [inputTournamentName, setInputTournamentName] = useState("Remote Cup");
   const [inputCapacity, setInputCapacity] = useState<4 | 8>(8);
@@ -82,80 +82,47 @@ export function RemoteTournament() {
     }
   }, [connectionStatus, gameState?.status, sendReady]);
 
+
   const handleCreateTournament = useCallback(() => {
-    console.log("🚀 CREATE TOURNAMENT - Handler Called", {
-      inputAlias: inputAlias.trim(),
-      inputTournamentName: inputTournamentName.trim(),
-      inputCapacity,
-      userId: user?.id,
-      isLoggedIn,
-      willProceed: !!(inputAlias.trim() && inputTournamentName.trim() && isLoggedIn && user),
-    });
-    
-    if (!inputAlias.trim() || !inputTournamentName.trim()) {
-      console.error("❌ CREATE TOURNAMENT - Validation failed: empty fields", {
-        aliasEmpty: !inputAlias.trim(),
-        nameEmpty: !inputTournamentName.trim(),
-      });
+    if (!inputTournamentName.trim() || !user?.username) {
+      console.warn("Missing required fields for create tournament");
       return;
     }
-    
-    if (!isLoggedIn || !user) {
-      console.error("❌ CREATE TOURNAMENT - Validation failed: not authenticated", {
-        isLoggedIn,
-        hasUser: !!user,
-      });
-      return;
-    }
-    
+
     console.log("✅ CREATE TOURNAMENT - Calling createTournament", {
       name: inputTournamentName.trim(),
-      alias: inputAlias.trim(),
+      alias: user.username,
       userId: user.id,
       capacity: inputCapacity,
     });
-    
-    createTournament(inputTournamentName.trim(), inputAlias.trim(), user.id, inputCapacity);
-  }, [inputAlias, inputTournamentName, inputCapacity, createTournament, user, isLoggedIn]);
+
+    createTournament(inputTournamentName.trim(), user.username, user.id, inputCapacity);
+  }, [inputTournamentName, inputCapacity, createTournament, user]);
 
   const handleJoinTournament = useCallback(() => {
-    console.log("🚀 JOIN TOURNAMENT - Handler Called", {
-      inputAlias: inputAlias.trim(),
-      inputCode: inputCode.trim(),
-      userId: user?.id,
-      isLoggedIn,
-      willProceed: !!(inputAlias.trim() && inputCode.trim() && isLoggedIn && user),
-    });
-    
-    if (!inputAlias.trim() || !inputCode.trim()) {
-      console.error("❌ JOIN TOURNAMENT - Validation failed: empty fields", {
-        aliasEmpty: !inputAlias.trim(),
-        codeEmpty: !inputCode.trim(),
-      });
+    if (!inputCode.trim() || !user?.username) {
+      console.error("❌ JOIN TOURNAMENT - Validation failed: empty fields or no user");
       return;
     }
-    
+
     if (!isLoggedIn || !user) {
-      console.error("❌ JOIN TOURNAMENT - Validation failed: not authenticated", {
-        isLoggedIn,
-        hasUser: !!user,
-      });
+      console.error("❌ JOIN TOURNAMENT - Validation failed: not authenticated");
       return;
     }
-    
+
     console.log("✅ JOIN TOURNAMENT - Calling joinTournament", {
       code: inputCode.trim().toUpperCase(),
-      alias: inputAlias.trim(),
+      alias: user.username,
       userId: user.id,
     });
-    
-    joinTournament(inputCode.trim().toUpperCase(), inputAlias.trim(), user.id);
-  }, [inputAlias, inputCode, joinTournament, user, isLoggedIn]);
+
+    joinTournament(inputCode.trim().toUpperCase(), user.username, user.id);
+  }, [inputCode, joinTournament, user, isLoggedIn]);
 
   const handleLeaveTournament = useCallback(() => {
     leaveTournament();
     setUiPhase("lobby");
-    setInputAlias("");
+
     setInputCode("");
     setInputTournamentName("Remote Cup");
     setInputCapacity(8);
@@ -164,7 +131,7 @@ export function RemoteTournament() {
   const handleDisconnect = useCallback(() => {
     disconnect();
     setUiPhase("lobby");
-    setInputAlias("");
+
     setInputCode("");
     setInputTournamentName("Remote Cup");
     setInputCapacity(8);
@@ -205,11 +172,11 @@ export function RemoteTournament() {
         </button>
       </div>
       <div className="flex-1 flex flex-col items-center justify-center text-slate-200 p-4">
-        <h1 className="text-5xl font-oswald font-bold mb-4 text-pong-teal" style={{ textShadow: '0 0 20px rgba(0, 207, 255, 0.5)' }}>
+        <h1 className="text-5xl font-oswald font-bold mb-4 text-pong-teal" style={{ textShadow: '0 0 20px rgba(0, 0, 0, 0)' }}>
           REMOTE TOURNAMENT
         </h1>
 
-      <ConnectionStatusBadge status={connectionStatus} />
+        <ConnectionStatusBadge status={connectionStatus} />
 
         {errorMessage && (
           <div className="mb-4 submission-error max-w-md text-center font-roboto">
@@ -224,14 +191,14 @@ export function RemoteTournament() {
             <div className="flex gap-4">
               <button
                 onClick={() => setUiPhase("create")}
-                className="px-8 py-4 bg-cyan-neon hover:bg-cyan-glow text-bg-primary font-oswald font-bold text-xl rounded-xl transition-all shadow-lg"
-                style={{ boxShadow: '0 0 15px rgba(0, 207, 255, 0.3)' }}
+                className="px-8 py-4 bg-pong-teal hover:brightness-110 text-pong-text-dark font-oswald font-bold text-xl rounded-xl transition-all shadow-lg"
+                style={{ boxShadow: '0 0 15px rgba(102, 232, 250, 0.5)' }}
               >
                 CREATE TOURNAMENT
               </button>
               <button
                 onClick={() => setUiPhase("join")}
-                className="px-8 py-4 bg-bg-secondary hover:bg-dark-700 border-2 border-cyan-neon text-cyan-neon font-oswald font-bold text-xl rounded-xl transition-all"
+                className="px-8 py-4 bg-pong-card hover:brightness-110 border-2 border-pong-teal text-pong-teal font-oswald font-bold text-xl rounded-xl transition-all"
               >
                 JOIN TOURNAMENT
               </button>
@@ -239,76 +206,72 @@ export function RemoteTournament() {
           </div>
         )}
 
-      {/* Create Tournament Form */}
-      {phase === "create" && connectionStatus === "connected" && (
-        <CreateTournamentForm
-          inputAlias={inputAlias}
-          inputTournamentName={inputTournamentName}
-          inputCapacity={inputCapacity}
-          setInputAlias={setInputAlias}
-          setInputTournamentName={setInputTournamentName}
-          setInputCapacity={setInputCapacity}
-          onSubmit={handleCreateTournament}
-          onBack={() => setUiPhase("lobby")}
-          isAuthenticated={isLoggedIn}
-          userName={user?.username ?? null}
-        />
-      )}
+        {/* Create Tournament Form */}
+        {phase === "create" && connectionStatus === "connected" && (
+          <CreateTournamentForm
+            inputTournamentName={inputTournamentName}
+            inputCapacity={inputCapacity}
+            setInputTournamentName={setInputTournamentName}
+            setInputCapacity={setInputCapacity}
+            onSubmit={handleCreateTournament}
+            onBack={() => setUiPhase("lobby")}
+            isAuthenticated={isLoggedIn}
+            userName={user?.username ?? null}
+          />
+        )}
 
-      {/* Join Tournament Form */}
-      {phase === "join" && connectionStatus === "connected" && (
-        <JoinTournamentForm
-          inputAlias={inputAlias}
-          inputCode={inputCode}
-          setInputAlias={setInputAlias}
-          setInputCode={setInputCode}
-          onSubmit={handleJoinTournament}
-          onBack={() => setUiPhase("lobby")}
-          isAuthenticated={isLoggedIn}
-          userName={user?.username ?? null}
-        />
-      )}
+        {/* Join Tournament Form */}
+        {phase === "join" && connectionStatus === "connected" && (
+          <JoinTournamentForm
+            inputCode={inputCode}
+            setInputCode={setInputCode}
+            onSubmit={handleJoinTournament}
+            onBack={() => setUiPhase("lobby")}
+            isAuthenticated={isLoggedIn}
+            userName={user?.username ?? null}
+          />
+        )}
 
-      {/* Waiting Room - Before bracket is generated */}
-      {phase === "waiting" && tournamentSnapshot && (
-        <WaitingRoom
-          snapshot={tournamentSnapshot}
-          tournamentCode={tournamentCode}
-          alias={alias}
-          onToggleReady={handleToggleReady}
-          onLeave={handleLeaveTournament}
-        />
-      )}
+        {/* Waiting Room - Before bracket is generated */}
+        {phase === "waiting" && tournamentSnapshot && (
+          <WaitingRoom
+            snapshot={tournamentSnapshot}
+            tournamentCode={tournamentCode}
+            alias={alias}
+            onToggleReady={handleToggleReady}
+            onLeave={handleLeaveTournament}
+          />
+        )}
 
-      {/* Bracket View */}
-      {phase === "bracket" && tournamentSnapshot && (
-        <BracketView
-          snapshot={tournamentSnapshot}
-          alias={alias}
-          onToggleReady={handleToggleReady}
-          onLeave={handleLeaveTournament}
-        />
-      )}
+        {/* Bracket View */}
+        {phase === "bracket" && tournamentSnapshot && (
+          <BracketView
+            snapshot={tournamentSnapshot}
+            alias={alias}
+            onToggleReady={handleToggleReady}
+            onLeave={handleLeaveTournament}
+          />
+        )}
 
-      {/* Playing Match */}
-      {phase === "playing" && gameState && players && playerSide && (
-        <TournamentMatchView
-          gameState={gameState}
-          players={players}
-          playerSide={playerSide}
-          winner={winner}
-          tournamentSnapshot={tournamentSnapshot}
-          sendInput={sendInput}
-        />
-      )}
+        {/* Playing Match */}
+        {phase === "playing" && gameState && players && playerSide && (
+          <TournamentMatchView
+            gameState={gameState}
+            players={players}
+            playerSide={playerSide}
+            winner={winner}
+            tournamentSnapshot={tournamentSnapshot}
+            sendInput={sendInput}
+          />
+        )}
 
-      {/* Champion Display */}
-      {phase === "champion" && tournamentSnapshot && (
-        <ChampionView
-          snapshot={tournamentSnapshot}
-          onNewTournament={handleDisconnect}
-        />
-      )}
+        {/* Champion Display */}
+        {phase === "champion" && tournamentSnapshot && (
+          <ChampionView
+            snapshot={tournamentSnapshot}
+            onNewTournament={handleDisconnect}
+          />
+        )}
 
         {/* Loading / Connecting States */}
         {connectionStatus === "connecting" && (
@@ -320,7 +283,7 @@ export function RemoteTournament() {
             <p className="text-red-400 mb-4 font-roboto">{errorMessage || "Connection error"}</p>
             <button
               onClick={() => void connect()}
-              className="px-4 py-2 bg-cyan-neon hover:bg-cyan-glow text-bg-primary rounded-lg transition-colors font-oswald font-bold"
+              className="px-4 py-2 bg-pong-teal hover:brightness-110 text-pong-text-dark rounded-lg transition-colors font-oswald font-bold"
             >
               RECONNECT
             </button>
@@ -341,7 +304,7 @@ function ConnectionStatusBadge({ status }: ConnectionStatusBadgeProps) {
     connecting: "bg-yellow-600",
     connected: "bg-green-600",
     joined: "bg-purple-600",
-    in_match: "bg-cyan-500",
+    in_match: "bg-pong-teal",
     error: "bg-red-600",
   };
 
@@ -364,10 +327,8 @@ function ConnectionStatusBadge({ status }: ConnectionStatusBadgeProps) {
 }
 
 interface CreateTournamentFormProps {
-  inputAlias: string;
   inputTournamentName: string;
   inputCapacity: 4 | 8;
-  setInputAlias: (value: string) => void;
   setInputTournamentName: (value: string) => void;
   setInputCapacity: (value: 4 | 8) => void;
   onSubmit: () => void;
@@ -377,10 +338,8 @@ interface CreateTournamentFormProps {
 }
 
 function CreateTournamentForm({
-  inputAlias,
   inputTournamentName,
   inputCapacity,
-  setInputAlias,
   setInputTournamentName,
   setInputCapacity,
   onSubmit,
@@ -391,20 +350,19 @@ function CreateTournamentForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("🎮 CREATE TOURNAMENT - Form Submit", {
-      inputAlias: inputAlias.trim(),
       inputTournamentName: inputTournamentName.trim(),
       inputCapacity,
-      canSubmit: inputAlias.trim() && inputTournamentName.trim(),
+      canSubmit: inputTournamentName.trim(),
     });
     onSubmit();
   };
 
-  const canSubmit = inputAlias.trim() && inputTournamentName.trim() && isAuthenticated;
+  const canSubmit = inputTournamentName.trim() && isAuthenticated;
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-md p-6 bg-bg-secondary rounded-2xl border border-slate-600/30">
-      <h2 className="text-2xl font-oswald font-bold text-cyan-neon mb-4">Create Tournament</h2>
-      
+      <h2 className="text-2xl font-oswald font-bold text-pong-teal mb-4">Create Tournament</h2>
+
       {/* Authentication Status */}
       {!isAuthenticated && (
         <div className="mb-4 p-3 bg-red-900/20 border border-red-500/50 rounded text-red-400 text-sm">
@@ -424,22 +382,12 @@ function CreateTournamentForm({
           value={inputTournamentName}
           onChange={(e) => setInputTournamentName(e.target.value)}
           placeholder="Enter tournament name"
-          className="w-full px-4 py-2 bg-bg-primary text-slate-200 border border-slate-600/30 rounded-xl focus:border-cyan-neon focus:outline-none font-roboto"
+          className="w-full px-4 py-2 bg-pong-card text-slate-200 border border-slate-600/30 rounded-xl focus:border-pong-teal focus:outline-none font-roboto"
           maxLength={64}
         />
       </div>
 
-      <div className="mb-4">
-        <label className="block text-gray-300 text-sm mb-2 font-roboto">Your Alias</label>
-        <input
-          type="text"
-          value={inputAlias}
-          onChange={(e) => setInputAlias(e.target.value)}
-          placeholder="Enter your alias"
-          className="w-full px-4 py-2 bg-bg-primary text-slate-200 border border-slate-600/30 rounded-xl focus:border-cyan-neon focus:outline-none font-roboto"
-          maxLength={32}
-        />
-      </div>
+
 
       <div className="mb-6">
         <label className="block text-white/70 text-sm mb-2 font-roboto uppercase">Bracket Size</label>
@@ -451,11 +399,10 @@ function CreateTournamentForm({
               console.log('Setting capacity to 4');
               setInputCapacity(4);
             }}
-            className={`flex-1 px-4 py-2 rounded-xl transition-colors font-oswald cursor-pointer ${
-              inputCapacity === 4
-                ? "bg-cyan-neon text-bg-primary font-bold"
-                : "bg-bg-primary border border-slate-600/30 text-slate-200 hover:bg-dark-700"
-            }`}
+            className={`flex-1 px-4 py-2 rounded-xl transition-colors font-oswald cursor-pointer ${inputCapacity === 4
+              ? "bg-pong-teal text-pong-text-dark font-bold"
+              : "bg-pong-card border border-slate-600/30 text-slate-200 hover:brightness-110"
+              }`}
           >
             4 PLAYERS
           </button>
@@ -466,11 +413,10 @@ function CreateTournamentForm({
               console.log('Setting capacity to 8');
               setInputCapacity(8);
             }}
-            className={`flex-1 px-4 py-2 rounded-xl transition-colors font-oswald cursor-pointer ${
-              inputCapacity === 8
-                ? "bg-cyan-neon text-bg-primary font-bold"
-                : "bg-bg-primary border border-slate-600/30 text-slate-200 hover:bg-dark-700"
-            }`}
+            className={`flex-1 px-4 py-2 rounded-xl transition-colors font-oswald cursor-pointer ${inputCapacity === 8
+              ? "bg-pong-teal text-pong-text-dark font-bold"
+              : "bg-pong-card border border-slate-600/30 text-slate-200 hover:brightness-110"
+              }`}
           >
             8 PLAYERS
           </button>
@@ -480,7 +426,6 @@ function CreateTournamentForm({
       {/* Validation Status Display */}
       {!canSubmit && (
         <div className="mb-4 text-sm text-center">
-          {!inputAlias.trim() && <p className="text-yellow-500">⚠️ Please enter your alias</p>}
           {!inputTournamentName.trim() && <p className="text-yellow-500">⚠️ Please enter tournament name</p>}
         </div>
       )}
@@ -489,19 +434,18 @@ function CreateTournamentForm({
         <button
           type="button"
           onClick={onBack}
-          className="flex-1 px-4 py-2 bg-bg-primary hover:bg-dark-700 border border-slate-600/30 text-slate-200 rounded-xl transition-colors font-roboto"
+          className="flex-1 px-4 py-2 bg-pong-card hover:brightness-110 border border-slate-600/30 text-slate-200 rounded-xl transition-colors font-roboto"
         >
           Back
         </button>
         <button
           type="submit"
           disabled={!canSubmit}
-          className={`flex-1 px-4 py-2 font-oswald font-bold rounded-xl transition-all ${
-            canSubmit
-              ? "bg-cyan-neon hover:bg-cyan-glow text-bg-primary shadow-lg"
-              : "bg-dark-700 text-gray-400 cursor-not-allowed"
-          }`}
-          style={canSubmit ? { boxShadow: '0 0 15px rgba(0, 207, 255, 0.3)' } : {}}
+          className={`flex-1 px-4 py-2 font-oswald font-bold rounded-xl transition-all ${canSubmit
+            ? "bg-pong-teal hover:brightness-110 text-pong-text-dark shadow-lg"
+            : "bg-pong-bg text-gray-400 cursor-not-allowed"
+            }`}
+          style={canSubmit ? { boxShadow: '0 0 15px rgba(102, 232, 250, 0.5)' } : {}}
         >
           CREATE
         </button>
@@ -511,9 +455,7 @@ function CreateTournamentForm({
 }
 
 interface JoinTournamentFormProps {
-  inputAlias: string;
   inputCode: string;
-  setInputAlias: (value: string) => void;
   setInputCode: (value: string) => void;
   onSubmit: () => void;
   onBack: () => void;
@@ -522,9 +464,7 @@ interface JoinTournamentFormProps {
 }
 
 function JoinTournamentForm({
-  inputAlias,
   inputCode,
-  setInputAlias,
   setInputCode,
   onSubmit,
   onBack,
@@ -536,11 +476,11 @@ function JoinTournamentForm({
     onSubmit();
   };
 
-  const canSubmit = inputAlias.trim() && inputCode.trim() && isAuthenticated;
+  const canSubmit = inputCode.trim() && isAuthenticated;
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-md p-6 bg-bg-secondary rounded-2xl border border-slate-600/30">
-      <h2 className="text-2xl font-oswald font-bold text-cyan-neon mb-4">Join Tournament</h2>
+      <h2 className="text-2xl font-oswald font-bold text-pong-teal mb-4">Join Tournament</h2>
 
       {/* Authentication Status */}
       {!isAuthenticated && (
@@ -561,40 +501,29 @@ function JoinTournamentForm({
           value={inputCode}
           onChange={(e) => setInputCode(e.target.value.toUpperCase())}
           placeholder="Enter tournament code"
-          className="w-full px-4 py-2 bg-bg-primary text-slate-200 border border-slate-600/30 rounded-xl focus:border-cyan-neon focus:outline-none uppercase font-mono"
+          className="w-full px-4 py-2 bg-pong-card text-slate-200 border border-slate-600/30 rounded-xl focus:border-pong-teal focus:outline-none uppercase font-mono"
           maxLength={8}
         />
       </div>
 
-      <div className="mb-6">
-        <label className="block text-gray-300 text-sm mb-2 font-roboto">Your Alias</label>
-        <input
-          type="text"
-          value={inputAlias}
-          onChange={(e) => setInputAlias(e.target.value)}
-          placeholder="Enter your alias"
-          className="w-full px-4 py-2 bg-bg-primary text-slate-200 border border-slate-600/30 rounded-xl focus:border-cyan-neon focus:outline-none font-roboto"
-          maxLength={32}
-        />
-      </div>
+
 
       <div className="flex gap-4">
         <button
           type="button"
           onClick={onBack}
-          className="flex-1 px-4 py-2 bg-bg-primary hover:bg-dark-700 border border-slate-600/30 text-slate-200 rounded-xl transition-colors font-roboto"
+          className="flex-1 px-4 py-2 bg-pong-card hover:brightness-110 border border-slate-600/30 text-slate-200 rounded-xl transition-colors font-roboto"
         >
           Back
         </button>
         <button
           type="submit"
           disabled={!canSubmit}
-          className={`flex-1 px-4 py-2 font-oswald font-bold rounded-xl transition-all ${
-            canSubmit
-              ? "bg-cyan-neon hover:bg-cyan-glow text-bg-primary shadow-lg"
-              : "bg-dark-700 text-gray-400 cursor-not-allowed"
-          }`}
-          style={canSubmit ? { boxShadow: '0 0 15px rgba(0, 207, 255, 0.3)' } : {}}
+          className={`flex-1 px-4 py-2 font-oswald font-bold rounded-xl transition-all ${canSubmit
+            ? "bg-pong-teal hover:brightness-110 text-pong-text-dark shadow-lg"
+            : "bg-pong-bg text-gray-400 cursor-not-allowed"
+            }`}
+          style={canSubmit ? { boxShadow: '0 0 15px rgba(102, 232, 250, 0.5)' } : {}}
         >
           JOIN
         </button>
@@ -624,10 +553,10 @@ function WaitingRoom({
   const connectedCount = snapshot.participants.filter(p => p.connected).length;
 
   return (
-    <div className="w-full max-w-lg p-6 bg-dark-800 rounded-lg border border-slate-600">
+    <div className="w-full max-w-lg p-6 bg-pong-card rounded-lg border border-slate-600">
       <div className="flex justify-between items-start mb-4">
         <div>
-          <h2 className="text-2xl font-oswald font-bold text-cyan-400">{snapshot.name}</h2>
+          <h2 className="text-2xl font-oswald font-bold text-pong-teal">{snapshot.name}</h2>
           <p className="text-gray-400 text-sm font-roboto">
             Waiting for players ({snapshot.participants.length}/{snapshot.capacity ?? 8})
           </p>
@@ -635,7 +564,7 @@ function WaitingRoom({
         {tournamentCode && (
           <div className="text-right">
             <div className="text-gray-400 text-sm font-roboto">Share Code</div>
-            <div className="text-2xl font-mono font-bold text-cyan-400">{tournamentCode}</div>
+            <div className="text-2xl font-mono font-bold text-pong-teal">{tournamentCode}</div>
           </div>
         )}
       </div>
@@ -656,18 +585,17 @@ function WaitingRoom({
       <div className="flex gap-4">
         <button
           onClick={onLeave}
-          className="flex-1 px-4 py-2 bg-dark-700 hover:bg-dark-600 border border-slate-600 text-slate-200 rounded transition-colors font-roboto"
+          className="flex-1 px-4 py-2 bg-pong-bg hover:brightness-110 border border-slate-600 text-slate-200 rounded transition-colors font-roboto"
         >
           Leave
         </button>
         <button
           onClick={onToggleReady}
-          className={`flex-1 px-4 py-2 font-oswald font-bold rounded transition-all ${
-            isReady
-              ? "bg-dark-700 hover:bg-dark-600 border border-cyan-400 text-cyan-400"
-              : "bg-cyan-400 hover:bg-cyan-500 text-dark-900 shadow-lg"
-          }`}
-          style={!isReady ? { boxShadow: '0 0 15px rgba(34, 211, 238, 0.3)' } : {}}
+          className={`flex-1 px-4 py-2 font-oswald font-bold rounded transition-all ${isReady
+            ? "bg-pong-bg hover:brightness-110 border border-pong-teal text-pong-teal"
+            : "bg-pong-teal hover:brightness-110 text-pong-text-dark shadow-lg"
+            }`}
+          style={!isReady ? { boxShadow: '0 0 15px rgba(102, 232, 250, 0.5)' } : {}}
         >
           {isReady ? "CANCEL READY" : "READY"}
         </button>
@@ -684,27 +612,25 @@ interface ParticipantRowProps {
 function ParticipantRow({ participant, isCurrentUser }: ParticipantRowProps) {
   return (
     <div
-      className={`flex items-center justify-between p-2 rounded border ${
-        isCurrentUser ? "bg-dark-700 border-cyan-400" : "bg-dark-800 border-slate-600"
-      }`}
+      className={`flex items-center justify-between p-2 rounded border ${isCurrentUser ? "bg-pong-bg border-pong-teal" : "bg-pong-card border-slate-600"
+        }`}
     >
       <div className="flex items-center gap-2">
         <div
-          className={`w-2 h-2 rounded-full ${
-            participant.connected ? "bg-cyan-400" : "bg-gray-500"
-          }`}
+          className={`w-2 h-2 rounded-full ${participant.connected ? "bg-pong-teal" : "bg-gray-500"
+            }`}
         />
-        <span className={`font-roboto ${isCurrentUser ? "text-cyan-400 font-bold" : "text-slate-200"}`}>
+        <span className={`font-roboto ${isCurrentUser ? "text-pong-teal font-bold" : "text-slate-200"}`}>
           {participant.alias}
           {isCurrentUser && " (you)"}
         </span>
       </div>
       <div className="flex items-center gap-2">
         {participant.inMatch && (
-          <span className="text-xs px-2 py-1 bg-cyan-400 text-dark-900 rounded font-roboto font-bold">Playing</span>
+          <span className="text-xs px-2 py-1 bg-pong-teal text-pong-text-dark rounded font-roboto font-bold">Playing</span>
         )}
         {participant.ready && !participant.inMatch && (
-          <span className="text-xs px-2 py-1 bg-cyan-400 text-dark-900 rounded font-roboto font-bold">Ready</span>
+          <span className="text-xs px-2 py-1 bg-pong-teal text-pong-text-dark rounded font-roboto font-bold">Ready</span>
         )}
       </div>
     </div>
@@ -742,7 +668,7 @@ function BracketView({
   return (
     <div className="flex flex-col items-center gap-6 w-full max-w-4xl">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-cyan-400">{snapshot.name}</h2>
+        <h2 className="text-2xl font-bold text-pong-teal">{snapshot.name}</h2>
         <p className="text-gray-400 text-sm">Tournament in progress</p>
       </div>
 
@@ -759,7 +685,7 @@ function BracketView({
       />
 
       {/* Participants list */}
-      <div className="w-full max-w-md p-4 bg-gray-800 rounded-lg">
+      <div className="w-full max-w-md p-4 bg-pong-card rounded-lg">
         <h3 className="text-gray-300 text-sm mb-2">Participants</h3>
         <div className="space-y-1">
           {snapshot.participants.map((participant) => (
@@ -774,7 +700,7 @@ function BracketView({
 
       <button
         onClick={onLeave}
-        className="px-6 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded transition-colors"
+        className="px-6 py-2 bg-pong-bg hover:brightness-110 text-white rounded transition-colors"
       >
         Leave Tournament
       </button>
@@ -852,13 +778,12 @@ function PlayerMatchPanel({ alias, match, isReady, isInMatch, opponent, onToggle
       <button
         onClick={onToggleReady}
         disabled={buttonDisabled}
-        className={`w-full px-4 py-2 font-bold rounded transition-colors ${
-          buttonDisabled
-            ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-            : isReady
-              ? "bg-yellow-500 hover:bg-yellow-600 text-black"
-              : "bg-green-500 hover:bg-green-600 text-black"
-        }`}
+        className={`w-full px-4 py-2 font-bold rounded transition-colors ${buttonDisabled
+          ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+          : isReady
+            ? "bg-yellow-500 hover:bg-yellow-600 text-black"
+            : "bg-green-500 hover:bg-green-600 text-black"
+          }`}
       >
         {isInMatch ? "In Match" : isReady ? "Cancel Ready" : "Ready"}
       </button>
@@ -884,7 +809,7 @@ function RemoteBracketDisplay({ snapshot }: RemoteBracketDisplayProps) {
   const RemoteMatchNode = ({ left, right, winner }: { left: string; right: string; winner: string | null | undefined }) => {
     const leftBg = winner === left ? 'bg-pong-teal' : 'bg-pong-node';
     const rightBg = winner === right ? 'bg-pong-teal' : 'bg-pong-node';
-    
+
     return (
       <div className="flex flex-col z-10 mb-2">
         <div className={`flex items-center justify-between rounded-md mb-1 h-9 w-52 ${leftBg} text-pong-text-dark transition-transform hover:scale-105 duration-200 cursor-pointer shadow-sm`}>
@@ -927,7 +852,7 @@ function RemoteBracketDisplay({ snapshot }: RemoteBracketDisplayProps) {
             </div>
           </div>
         ))}
-        
+
         {/* Champion display */}
         {snapshot.bracket.champion && (
           <div className="flex flex-col justify-center pl-4">
@@ -1024,26 +949,24 @@ function TournamentMatchView({
       <div className="flex justify-center gap-16 mb-4 text-3xl font-oswald">
         <div className="text-center">
           <div
-            className={`text-sm font-roboto ${
-              playerSide === "left" ? "text-cyan-400" : "text-gray-400"
-            }`}
+            className={`text-sm font-roboto ${playerSide === "left" ? "text-pong-teal" : "text-gray-400"
+              }`}
           >
             {players.left.username}
             {playerSide === "left" && " (You)"}
           </div>
-          <div className="font-bold text-cyan-400">{gameState.score.left}</div>
+          <div className="font-bold text-pong-teal">{gameState.score.left}</div>
         </div>
         <div className="text-gray-500">-</div>
         <div className="text-center">
           <div
-            className={`text-sm font-roboto ${
-              playerSide === "right" ? "text-cyan-400" : "text-gray-400"
-            }`}
+            className={`text-sm font-roboto ${playerSide === "right" ? "text-pong-teal" : "text-gray-400"
+              }`}
           >
             {players.right.username}
             {playerSide === "right" && " (You)"}
           </div>
-          <div className="font-bold text-cyan-400">{gameState.score.right}</div>
+          <div className="font-bold text-pong-teal">{gameState.score.right}</div>
         </div>
       </div>
 
@@ -1059,9 +982,8 @@ function TournamentMatchView({
       {winner && (
         <div className="mt-4 text-center">
           <div
-            className={`text-2xl font-oswald font-bold ${
-              winner === playerSide ? "text-cyan-400" : "text-gray-400"
-            }`}
+            className={`text-2xl font-oswald font-bold ${winner === playerSide ? "text-pong-teal" : "text-gray-400"
+              }`}
           >
             {winner === playerSide ? "YOU WIN!" : "YOU LOSE!"}
           </div>
@@ -1093,8 +1015,8 @@ function RemoteGameCanvas({ gameState }: RemoteGameCanvasProps) {
   return (
     <div
       className="relative rounded-2xl border border-gray-600 overflow-hidden"
-      style={{ 
-        width: arenaWidth, 
+      style={{
+        width: arenaWidth,
         height: arenaHeight,
         backgroundColor: '#7B8A9A',
         boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)'
@@ -1159,9 +1081,9 @@ interface ChampionViewProps {
 function ChampionView({ snapshot, onNewTournament }: ChampionViewProps) {
   return (
     <div className="flex flex-col items-center gap-6">
-      <div className="w-full max-w-md p-8 bg-gradient-to-b from-cyan-900/30 to-dark-800 border-2 border-cyan-400 rounded-lg text-center">
+      <div className="w-full max-w-md p-8 bg-gradient-to-b from-pong-teal/20 to-pong-card border-2 border-pong-teal rounded-lg text-center">
         <div className="text-6xl mb-4">🏆</div>
-        <h2 className="text-3xl font-oswald font-bold text-cyan-400 mb-2">CHAMPION!</h2>
+        <h2 className="text-3xl font-oswald font-bold text-pong-teal mb-2">CHAMPION!</h2>
         <div className="text-4xl font-oswald font-bold text-slate-200 mb-4">
           {snapshot.bracket?.champion || "Unknown"}
         </div>
@@ -1169,7 +1091,7 @@ function ChampionView({ snapshot, onNewTournament }: ChampionViewProps) {
 
         <button
           onClick={onNewTournament}
-          className="px-8 py-4 bg-cyan-400 hover:bg-cyan-500 text-dark-900 font-oswald font-bold text-xl rounded-lg transition-all shadow-lg"
+          className="px-8 py-4 bg-pong-teal hover:brightness-110 text-pong-text-dark font-oswald font-bold text-xl rounded-lg transition-all shadow-lg"
           style={{ boxShadow: '0 0 15px rgba(34, 211, 238, 0.3)' }}
         >
           NEW TOURNAMENT

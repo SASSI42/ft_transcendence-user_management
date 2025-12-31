@@ -1,5 +1,5 @@
 import type { Server } from "socket.io";
-import { GameRoomManager, type MatchLifecycleHooks, type PlayerTicket } from "../game/gameRoom";
+import { GameRoomManager } from "../game/gameRoom";
 import { Tournament } from "./tournament";
 import { generateTournamentCode } from "./utils";
 import { loadAllTournaments, deleteTournament as deleteTournamentRecord } from "../db/tournamentStorage";
@@ -7,8 +7,11 @@ import { getOrCreateUserId } from "../db/userStorage";
 
 export class TournamentRegistry {
 	private readonly tournaments = new Map<string, Tournament>();
+	public io: Server;
 
-	public constructor(private readonly io: Server, private readonly roomManager: GameRoomManager) {}
+	public constructor(io: Server, private readonly roomManager: GameRoomManager) {
+		this.io = io;
+	}
 
 	public hydrateFromStorage(): void {
 		const storedTournaments = loadAllTournaments();
@@ -78,12 +81,11 @@ export class TournamentRegistry {
 			const leftUserId = getOrCreateUserId(leftAlias);
 			const rightUserId = getOrCreateUserId(rightAlias);
 
-			const players: [PlayerTicket, PlayerTicket] = [
+			const room = this.roomManager.createRoom(
 				{ socket: leftSocket, userId: leftUserId, username: leftAlias },
-				{ socket: rightSocket, userId: rightUserId, username: rightAlias },
-			];
-			const hooks = this.buildMatchHooks(code, matchId, aliases);
-			const room = this.roomManager.createRoom(players, hooks);
+				{ socket: rightSocket, userId: rightUserId, username: rightAlias }
+			);
+
 			tournament.markMatchReserved(matchId, aliases, room.id);
 			tournament.broadcastUpdate();
 			started = true;
@@ -94,20 +96,6 @@ export class TournamentRegistry {
 		}
 
 		return started;
-	}
-
-	private buildMatchHooks(code: string, matchId: string, aliases: [string, string]): MatchLifecycleHooks {
-		return {
-			onMatchEnded: ({ winner }) => {
-				const tournament = this.tournaments.get(code);
-				if (!tournament) {
-					return;
-				}
-				const winnerAlias = winner === "left" ? aliases[0] : winner === "right" ? aliases[1] : null;
-				tournament.markMatchFinished(matchId, aliases, winnerAlias);
-				tournament.broadcastUpdate();
-			},
-		};
 	}
 
 	public cleanupIfEmpty(code: string): void {

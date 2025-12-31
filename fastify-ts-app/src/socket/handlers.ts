@@ -14,8 +14,14 @@ const onlineUsers = new Map<number, string>();
 // Initialize game services
 const matchmakingService = new MatchmakingService();
 const gameRoomManager = new GameRoomManager();
+const tournamentRegistry = new TournamentRegistry(null as any, gameRoomManager); // io will be set in setupSocketHandlers
 
 export function setupSocketHandlers(db: Database, io: Server) {
+    // Set the io instance for tournament registry
+    tournamentRegistry.io = io;
+
+    // Hydrate tournaments from storage on startup
+    tournamentRegistry.hydrateFromStorage();
     io.on('connection', (rawSocket: Socket) => {
         const socket = rawSocket as AuthenticatedSocket;
         const userId = socket.data.user.id;
@@ -34,10 +40,10 @@ export function setupSocketHandlers(db: Database, io: Server) {
                 // Determine who needs to know based on the message itself
                 const senderSocket = onlineUsers.get(updatedMsg.senderId);
                 const receiverSocket = onlineUsers.get(updatedMsg.receiverId);
-                
+
                 // If I am the sender, I should see the update
                 if (senderSocket) io.to(senderSocket).emit('message_updated', updatedMsg);
-                
+
                 // If I am the receiver (and not blocked ideally, but the UI handles hiding), send it
                 if (receiverSocket) io.to(receiverSocket).emit('message_updated', updatedMsg);
             }
@@ -53,7 +59,7 @@ export function setupSocketHandlers(db: Database, io: Server) {
                 if (!userId) return;
                 const message = MessagesService.sendMessage(db, userId, data.receiverId, data.content);
                 socket.emit('message_sent', message);
-                
+
                 if (!message.isBlocked) {
                     const receiverSocketId = onlineUsers.get(data.receiverId);
                     if (receiverSocketId) io.to(receiverSocketId).emit('new_message', message);
@@ -71,7 +77,7 @@ export function setupSocketHandlers(db: Database, io: Server) {
         //     } catch (error: any) { socket.emit('error', { message: error.message }); }
         // });
 
-        socket.on('mark_all_read', async (data: { senderId: number }) => { 
+        socket.on('mark_all_read', async (data: { senderId: number }) => {
             try {
                 if (!userId) return;
                 const result = MessagesService.markAllAsRead(db, userId, data.senderId);
@@ -115,7 +121,7 @@ export function setupSocketHandlers(db: Database, io: Server) {
                         const currentInvite = GameInvitesService.getInviteById(db, invite.id);
                         if (currentInvite && currentInvite.status === 'pending') {
                             GameInvitesService.expireInvite(db, invite.id);
-                            
+
                             const s1 = onlineUsers.get(invite.senderId);
                             const s2 = onlineUsers.get(invite.receiverId);
                             if (s1) io.to(s1).emit('game_invite_expired', { inviteId: invite.id });
@@ -130,10 +136,10 @@ export function setupSocketHandlers(db: Database, io: Server) {
                     setTimeout(() => {
                         const currentInvite = GameInvitesService.getInviteById(db, invite.id);
                         if (currentInvite && currentInvite.status === 'pending') {
-                        GameInvitesService.expireInvite(db, invite.id);
-                        const s1 = onlineUsers.get(invite.senderId);
-                        if (s1) io.to(s1).emit('game_invite_expired', { inviteId: invite.id });
-                        updateInviteStatus(invite.id, 'EXPIRED');
+                            GameInvitesService.expireInvite(db, invite.id);
+                            const s1 = onlineUsers.get(invite.senderId);
+                            if (s1) io.to(s1).emit('game_invite_expired', { inviteId: invite.id });
+                            updateInviteStatus(invite.id, 'EXPIRED');
                         }
                     }, 30 * 1000);
                 }
@@ -147,14 +153,14 @@ export function setupSocketHandlers(db: Database, io: Server) {
             try {
                 if (!userId) return;
                 const invite = GameInvitesService.acceptGameInvite(db, data.inviteId, userId);
-                
+
                 socket.emit('game_invite_accepted', invite);
                 const senderSocketId = onlineUsers.get(invite.senderId);
                 if (senderSocketId) io.to(senderSocketId).emit('game_invite_accepted', invite);
 
                 updateInviteStatus(invite.id, 'ACCEPTED');
 
-                notifyFriendsStatus(db ,io, invite.senderId, 'in-game');
+                notifyFriendsStatus(db, io, invite.senderId, 'in-game');
                 notifyFriendsStatus(db, io, invite.receiverId, 'in-game');
             } catch (error: any) {
                 if (error.message.includes('expired')) {
@@ -168,7 +174,7 @@ export function setupSocketHandlers(db: Database, io: Server) {
             try {
                 if (!userId) return;
                 GameInvitesService.declineGameInvite(db, data.inviteId, userId);
-                
+
                 const invite = GameInvitesService.getInviteById(db, data.inviteId);
                 if (invite) {
                     const senderSocketId = onlineUsers.get(invite.senderId);
@@ -185,7 +191,7 @@ export function setupSocketHandlers(db: Database, io: Server) {
                 if (!userId) return;
                 // Try to cancel real invite
                 const invite = GameInvitesService.cancelGameInvite(db, data.inviteId, userId);
-                
+
                 socket.emit('game_invite_cancelled', { inviteId: data.inviteId });
                 const receiverSocketId = onlineUsers.get(invite.receiverId);
                 if (receiverSocketId) io.to(receiverSocketId).emit('game_invite_cancelled', { inviteId: data.inviteId });
@@ -205,11 +211,11 @@ export function setupSocketHandlers(db: Database, io: Server) {
             // Revert status to Online (Green Dot)
             notifyFriendsStatus(db, io, userId, 'online');
         });
-    
+
 
         socket.on('remove_friend', (data: { friendId: number }) => {
             if (!userId) return;
-            
+
             try {
                 // 1. Perform Database Removal (Friendship + Blocks)
                 FriendsService.removeFriend(db, userId, data.friendId);
@@ -223,7 +229,7 @@ export function setupSocketHandlers(db: Database, io: Server) {
                     const s2 = onlineUsers.get(invite.receiverId);
                     if (s1) io.to(s1).emit('game_invite_cancelled', { inviteId: invite.id });
                     if (s2) io.to(s2).emit('game_invite_cancelled', { inviteId: invite.id });
-                    
+
                     // Update Chat Bubble
                     // (We can use a helper or just direct call)
                     const updatedMsg = MessagesService.updateInviteMessage(db, invite.id, 'CANCELLED');
@@ -246,17 +252,17 @@ export function setupSocketHandlers(db: Database, io: Server) {
                 socket.emit('error', { message: 'Failed to remove friend' });
             }
         });
-    
+
         // 1. SEND FRIEND REQUEST
         socket.on('send_friend_request', (data: { friendId: number }) => {
             if (!userId) return;
             try {
                 // Call Service
                 const result = FriendsService.sendFriendRequest(db, userId, data.friendId);
-                
+
                 // Get Sender Details (To show to Receiver)
                 const sender = db.prepare('SELECT id, username, Avatar as avatarUrl FROM users WHERE id = ?').get(userId) as any;
-                
+
                 // If Auto-Accepted (Both sent requests)
                 if (result.status === 'accepted') {
                     const receiverSocketId = onlineUsers.get(data.friendId);
@@ -265,10 +271,10 @@ export function setupSocketHandlers(db: Database, io: Server) {
                     // 🛠️ FIX: Inject REAL status
                     const myStatus = onlineUsers.has(userId) ? 'online' : 'offline';
                     const theirStatus = onlineUsers.has(data.friendId) ? 'online' : 'offline';
-                    
+
                     // Notify Sender (Me)
                     socket.emit('new_friend', { ...receiver, status: theirStatus });
-                    
+
                     // Notify Receiver (Them)
                     if (receiverSocketId) io.to(receiverSocketId).emit('new_friend', { ...sender, status: myStatus });
                 }
@@ -285,12 +291,12 @@ export function setupSocketHandlers(db: Database, io: Server) {
                     }
                     // Notify Sender (Optional: add to 'sent' list)
                     const friendInfo = db.prepare('SELECT username FROM users WHERE id = ?').get(data.friendId) as any;
-                    socket.emit('friend_request_sent_success', { 
-                        id: result.id, 
-                        user_id: userId, 
+                    socket.emit('friend_request_sent_success', {
+                        id: result.id,
+                        user_id: userId,
                         friend_id: data.friendId,
-                        username: friendInfo?.username || 'Unknown', 
-                        status: 'pending' 
+                        username: friendInfo?.username || 'Unknown',
+                        status: 'pending'
                     });
                 }
             } catch (error: any) { socket.emit('error', { message: error.message }); }
@@ -301,7 +307,7 @@ export function setupSocketHandlers(db: Database, io: Server) {
             if (!userId) return;
             try {
                 FriendsService.acceptFriendRequest(db, data.friendshipId);
-                
+
                 // Fetch details
                 const me = db.prepare('SELECT id, username, Avatar as avatarUrl FROM users WHERE id = ?').get(userId) as any;
                 const them = db.prepare('SELECT id, username, Avatar as avatarUrl FROM users WHERE id = ?').get(data.friendId) as any;
@@ -309,7 +315,7 @@ export function setupSocketHandlers(db: Database, io: Server) {
                 // 🛠️ FIX: Inject REAL status
                 const myStatus = onlineUsers.has(userId) ? 'online' : 'offline';
                 const theirStatus = onlineUsers.has(data.friendId) ? 'online' : 'offline';
-            
+
                 // Notify Me (Add to Friend List)
                 socket.emit('new_friend', { ...them, status: theirStatus });
 
@@ -327,7 +333,7 @@ export function setupSocketHandlers(db: Database, io: Server) {
                 const result = FriendsService.declineFriendRequest(db, data.friendshipId);
                 //  Remove it from my list
                 socket.emit('friend_request_removed', { friendshipId: data.friendshipId });
-            
+
                 // Notify the OTHER person that their request was declined
                 const otherPersonId = (result.userId === userId) ? result.friendId : result.userId;
                 const themSocket = onlineUsers.get(otherPersonId);
@@ -343,15 +349,15 @@ export function setupSocketHandlers(db: Database, io: Server) {
             if (!userId) return;
             try {
                 FriendsService.blockUser(db, userId, data.blockedUserId);
-                
+
                 // Fetch blocked user details for my list
                 const blockedUser = db.prepare('SELECT id, username, Avatar as avatarUrl FROM users WHERE id = ?').get(data.blockedUserId) as any;
-                
+
                 socket.emit('friend_blocked', blockedUser);
-                
+
                 // (Optional) We could notify the blocked user they were "removed" if they were friends, 
                 // but usually we rely on the next refresh for them (Ghosting).
-                
+
             } catch (error: any) { socket.emit('error', { message: error.message }); }
         });
 
@@ -361,11 +367,11 @@ export function setupSocketHandlers(db: Database, io: Server) {
             try {
                 FriendsService.unblockUser(db, userId, data.blockedUserId);
                 socket.emit('friend_unblocked', { userId: data.blockedUserId });
-                
+
                 // Note: If they were friends before, they reappear automatically on next fetch.
                 // For real-time restore, we'd need to check if friendship exists and emit 'new_friend'.
                 const friendship = db.prepare(`SELECT * FROM friendships WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?) AND status = 'accepted'`).get(userId, data.blockedUserId, data.blockedUserId, userId);
-                
+
                 if (friendship) {
                     const friend = db.prepare('SELECT id, username, Avatar as avatarUrl FROM users WHERE id = ?').get(data.blockedUserId) as any;
                     const friendStatus = onlineUsers.has(data.blockedUserId) ? 'online' : 'offline';
@@ -376,7 +382,7 @@ export function setupSocketHandlers(db: Database, io: Server) {
         });
 
         // ==================== GAME MATCHMAKING HANDLERS ====================
-        
+
         socket.on('client:join', async (data: { username: string; userId?: number }) => {
             try {
                 // Only use authenticated userId from socket
@@ -431,19 +437,19 @@ export function setupSocketHandlers(db: Database, io: Server) {
                     // Remove from matchmaking queue
                     matchmakingService.dequeue(gameUserId);
                     console.log(`❌ ${gameUserId} left matchmaking queue`);
-                    
+
                     // Also check if user is in an active game room and clean it up
                     const room = gameRoomManager.getRoomByUserId(gameUserId);
                     if (room) {
                         const roomId = room.id;
                         console.log(`🧹 Cleaning up game room ${roomId} for user ${gameUserId}`);
-                        
+
                         // Get this player's side
                         const playerSide = room.getPlayerSide(gameUserId);
                         if (playerSide) {
                             // Get opponent's side
                             const opponentSide: PlayerSide = playerSide === 'left' ? 'right' : 'left';
-                            
+
                             // Notify opponent that this player left
                             // Access the opponent's socket through the room's internal structure
                             const roomState = room.getState();
@@ -452,7 +458,7 @@ export function setupSocketHandlers(db: Database, io: Server) {
                                 opponentPlayer.socket.emit('server:opponent-left', { reason: 'Player left' });
                             }
                         }
-                        
+
                         // Remove the room completely
                         gameRoomManager.removeRoom(roomId);
                     }
@@ -492,6 +498,147 @@ export function setupSocketHandlers(db: Database, io: Server) {
             }
         });
 
+        // ==================== TOURNAMENT HANDLERS ====================
+
+        socket.on('client:tournament:create', (data: { name: string; alias: string; userId?: number; capacity?: number }) => {
+            try {
+                const gameUserId = socket.data.user?.id;
+                if (!gameUserId) {
+                    socket.emit('server:tournament:error', { message: 'Authentication required' });
+                    return;
+                }
+
+                const sanitizedAlias = sanitizeTournamentAlias(data.alias);
+                if (!sanitizedAlias) {
+                    socket.emit('server:tournament:error', { message: 'Invalid alias' });
+                    return;
+                }
+
+                const capacity = data.capacity === 4 ? 4 : 8;
+                const tournament = tournamentRegistry.create(data.name, capacity);
+
+                try {
+                    const result = tournament.register(sanitizedAlias, socket);
+                    const snapshot = tournament.getSnapshot();
+
+                    socket.emit('server:tournament:created', {
+                        code: tournament.code,
+                        snapshot,
+                        alias: sanitizedAlias,
+                    });
+
+                    console.log(`🏆 Tournament created: ${tournament.code} by ${sanitizedAlias}`);
+                } catch (error: any) {
+                    tournamentRegistry.remove(tournament.code);
+                    socket.emit('server:tournament:error', { message: error.message });
+                }
+            } catch (error: any) {
+                console.error('Error creating tournament:', error);
+                socket.emit('server:tournament:error', { message: error.message || 'Failed to create tournament' });
+            }
+        });
+
+        socket.on('client:tournament:join', (data: { code: string; alias: string; userId?: number }) => {
+            try {
+                const gameUserId = socket.data.user?.id;
+                if (!gameUserId) {
+                    socket.emit('server:tournament:error', { message: 'Authentication required' });
+                    return;
+                }
+
+                const sanitizedAlias = sanitizeTournamentAlias(data.alias);
+                if (!sanitizedAlias) {
+                    socket.emit('server:tournament:error', { message: 'Invalid alias' });
+                    return;
+                }
+
+                const normalizedCode = normalizeCode(data.code);
+                if (!normalizedCode) {
+                    socket.emit('server:tournament:error', { message: 'Invalid tournament code' });
+                    return;
+                }
+
+                const tournament = tournamentRegistry.get(normalizedCode);
+
+                if (!tournament) {
+                    socket.emit('server:tournament:error', { message: 'Tournament not found' });
+                    return;
+                }
+
+                try {
+                    const result = tournament.register(sanitizedAlias, socket);
+                    const snapshot = tournament.getSnapshot();
+
+                    socket.emit('server:tournament:joined', {
+                        code: tournament.code,
+                        snapshot,
+                        alias: sanitizedAlias,
+                    });
+
+                    tournament.broadcastUpdate();
+                    console.log(`🏆 ${sanitizedAlias} joined tournament ${tournament.code}`);
+                } catch (error: any) {
+                    socket.emit('server:tournament:error', { message: error.message });
+                }
+            } catch (error: any) {
+                console.error('Error joining tournament:', error);
+                socket.emit('server:tournament:error', { message: error.message || 'Failed to join tournament' });
+            }
+        });
+
+        socket.on('client:tournament:leave', () => {
+            try {
+                const gameUserId = socket.data.user?.id;
+                if (!gameUserId) return;
+
+                // Find which tournament this socket is in
+                for (const tournament of tournamentRegistry.all()) {
+                    const alias = tournament.aliasForSocket(socket.id);
+                    if (alias) {
+                        tournament.remove(alias);
+                        tournament.broadcastUpdate();
+                        socket.emit('server:tournament:left');
+                        console.log(`🏆 ${alias} left tournament ${tournament.code}`);
+
+                        // Cleanup if empty
+                        tournamentRegistry.cleanupIfEmpty(tournament.code);
+                        break;
+                    }
+                }
+            } catch (error: any) {
+                console.error('Error leaving tournament:', error);
+            }
+        });
+
+        socket.on('client:tournament:ready', (data: { ready: boolean }) => {
+            try {
+                const gameUserId = socket.data.user?.id;
+                if (!gameUserId) return;
+
+                // Find which tournament this socket is in
+                for (const tournament of tournamentRegistry.all()) {
+                    const alias = tournament.aliasForSocket(socket.id);
+                    if (alias) {
+                        tournament.setReady(alias, data.ready);
+
+                        // Debug log for room size
+                        const room = io.sockets.adapter.rooms.get(tournament.roomName);
+                        console.log(`[Tournament] ${alias} set ready: ${data.ready}. Broadcasting to ${tournament.roomName} (Size: ${room?.size ?? 0})`);
+
+                        tournament.broadcastUpdate();
+
+                        // Try to start matches if players are ready
+                        tournamentRegistry.tryStartMatches(tournament.code);
+                        break;
+                    }
+                }
+            } catch (error: any) {
+                console.error('Error setting tournament ready:', error);
+            }
+        });
+
+        // ==================== END TOURNAMENT HANDLERS ====================
+
         // ==================== END GAME HANDLERS ====================
 
         socket.on('disconnect', () => {
@@ -520,12 +667,22 @@ export function setupSocketHandlers(db: Database, io: Server) {
                     }
                     gameRoomManager.removeRoom(room.id);
                 }
+
+                // Clean up tournament state
+                for (const tournament of tournamentRegistry.all()) {
+                    const alias = tournament.aliasForSocket(socket.id);
+                    if (alias) {
+                        tournament.markDisconnected(socket.id);
+                        tournament.broadcastUpdate();
+                        console.log(`🏆 ${alias} disconnected from tournament ${tournament.code}`);
+                    }
+                }
             }
         });
     });
 }
 
-function notifyFriendsStatus(db: Database, io: Server, userId: number, status: 'online' | 'offline'| 'in-game') {
+function notifyFriendsStatus(db: Database, io: Server, userId: number, status: 'online' | 'offline' | 'in-game') {
     try {
         const friends = FriendsService.getFriendsToNotify(db, userId);
         friends.forEach((friend: any) => {
@@ -533,7 +690,7 @@ function notifyFriendsStatus(db: Database, io: Server, userId: number, status: '
             const friendSocketId = onlineUsers.get(friend.id);
             if (friendSocketId) io.to(friendSocketId).emit('friend_status_change', { userId, status });
         });
-    } catch (error) {}
+    } catch (error) { }
 }
 
 function sendOnlineFriendsList(db: Database, io: Server, socket: Socket, userId: number) {

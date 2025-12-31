@@ -25,7 +25,7 @@ export class Tournament {
 	public readonly createdAt: number;
 	public status: TournamentStatus = "registering";
 
-	public readonly roomName: string;
+	private readonly roomName: string;
 	private readonly participants = new Map<string, TournamentParticipant>();
 	private readonly socketAliasMap = new Map<string, string>();
 	private readonly aliasLookup = new Map<string, string>();
@@ -76,10 +76,6 @@ export class Tournament {
 			this.socketAliasMap.set(socket.id, canonical);
 			socket.join(this.roomName);
 			if (activeMatch) {
-				// TODO: Implement rejoinRoom in GameRoomManager
-				// For now, expire the match since we can't rejoin
-				this.handleExpiredActiveMatch(activeMatch.matchId, activeMatch.aliases);
-				existing.inMatch = false;
 			}
 			this.persistState();
 			return "reconnected";
@@ -325,23 +321,23 @@ export class Tournament {
 				inMatch: participant.inMatch,
 			}));
 
-		const activeMatches: StoredTournamentActiveMatch[] = [...this.activeMatches.entries()].map(([matchId, record]) => ({
-			matchId,
-			aliases: [record.aliases[0], record.aliases[1]],
-			roomId: record.roomId,
-		}));
+	const activeMatches: StoredTournamentActiveMatch[] = [...this.activeMatches.entries()].map(([matchId, record]) => ({
+		matchId,
+		aliases: [record.aliases[0], record.aliases[1]],
+		roomId: record.roomId,
+	}));
 
-		return {
-			code: this.code,
-			name: this.name,
-			status: this.status,
-			capacity: this.maxParticipants,
-			createdAt: this.createdAt,
-			updatedAt: Date.now(),
-			participants,
-			activeMatches,
-			bracket: this.bracket ? this.bracket.serialize() : null,
-		};
+	return {
+		code: this.code,
+		name: this.name,
+		status: this.status,
+		capacity: this.maxParticipants,
+		createdAt: this.createdAt,
+		updatedAt: Date.now(),
+		participants,
+		activeMatches,
+		bracket: this.bracket ? this.bracket.serialize() : null,
+	};
 	}
 
 	private persistState(): void {

@@ -190,11 +190,17 @@ export function useWebSocket(): UseWebSocketReturn {
     });
 
     socket.on("server:opponent-left", () => {
-      setConnectionStatus("opponent_disconnected");
+      setConnectionStatus((prev) => {
+        if (prev === "ended") return prev;
+        return "opponent_disconnected";
+      });
     });
 
     socket.on("server:opponent-paused", () => {
-      setConnectionStatus("opponent_disconnected");
+      setConnectionStatus((prev) => {
+        if (prev === "ended") return prev;
+        return "opponent_disconnected";
+      });
     });
 
     socket.on("server:opponent-resumed", () => {
