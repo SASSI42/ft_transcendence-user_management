@@ -3,7 +3,6 @@ import { GameRoomManager } from "../game/gameRoom";
 import { Tournament } from "./tournament";
 import { generateTournamentCode } from "./utils";
 import { loadAllTournaments, deleteTournament as deleteTournamentRecord } from "../db/tournamentStorage";
-import { getOrCreateUserId } from "../db/userStorage";
 
 export class TournamentRegistry {
 	private readonly tournaments = new Map<string, Tournament>();
@@ -76,10 +75,16 @@ export class TournamentRegistry {
 				continue;
 			}
 
-			// TODO: Once user management is integrated, tournament participants should be
-			// linked to actual user accounts, not temporary aliases
-			const leftUserId = getOrCreateUserId(leftAlias);
-			const rightUserId = getOrCreateUserId(rightAlias);
+			// Use real authenticated user IDs from tournament participants
+			const leftUserId = tournament.getUserId(leftAlias);
+			const rightUserId = tournament.getUserId(rightAlias);
+			
+			if (!leftUserId || !rightUserId) {
+				console.error(`[tournament] Missing user IDs for match ${matchId}`, { leftAlias, rightAlias });
+				needsUpdate = true;
+				tournament.releaseActiveMatch(matchId, aliases);
+				continue;
+			}
 
 			const room = this.roomManager.createRoom(
 				{ socket: leftSocket, userId: leftUserId, username: leftAlias },

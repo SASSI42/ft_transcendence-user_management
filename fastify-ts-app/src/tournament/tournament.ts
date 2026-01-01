@@ -9,10 +9,10 @@ import {
 	type StoredTournamentParticipant,
 	type StoredTournamentState,
 } from "../db/tournamentStorage";
-import { getOrCreateUserId } from "../db/userStorage";
 
 interface TournamentParticipant {
 	alias: string;
+	userId: number;
 	socketId: string;
 	joinedAt: number;
 	lastSeenAt: number;
@@ -53,7 +53,7 @@ export class Tournament {
 		return tournament;
 	}
 
-	public register(alias: string, socket: Socket): "joined" | "reconnected" {
+	public register(alias: string, userId: number, socket: Socket): "joined" | "reconnected" {
 		const now = Date.now();
 		const normalizedAlias = this.normalizeAlias(alias);
 		const canonicalAlias = this.aliasLookup.get(normalizedAlias) ?? alias;
@@ -94,6 +94,7 @@ export class Tournament {
 
 		const participant: TournamentParticipant = {
 			alias,
+			userId,
 			socketId: socket.id,
 			joinedAt: now,
 			lastSeenAt: now,
@@ -319,6 +320,7 @@ export class Tournament {
 			.sort((a, b) => a.joinedAt - b.joinedAt)
 			.map((participant) => ({
 				alias: participant.alias,
+				userId: participant.userId,
 				joinedAt: participant.joinedAt,
 				lastSeenAt: participant.lastSeenAt,
 				ready: participant.ready,
@@ -359,6 +361,7 @@ export class Tournament {
 		for (const record of records) {
 			const participant: TournamentParticipant = {
 				alias: record.alias,
+				userId: record.userId,
 				socketId: "",
 				joinedAt: record.joinedAt,
 				lastSeenAt: record.lastSeenAt,
@@ -484,6 +487,11 @@ export class Tournament {
 			return undefined;
 		}
 		return this.io.sockets.sockets.get(participant.socketId);
+	}
+
+	public getUserId(alias: string): number | undefined {
+		const participant = this.participants.get(alias);
+		return participant?.userId;
 	}
 
 	public leaveRoom(socket: Socket): void {

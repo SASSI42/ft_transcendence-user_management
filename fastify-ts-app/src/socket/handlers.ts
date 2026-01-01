@@ -518,7 +518,7 @@ export function setupSocketHandlers(db: Database, io: Server) {
                 const tournament = tournamentRegistry.create(data.name, capacity);
 
                 try {
-                    const result = tournament.register(sanitizedAlias, socket);
+                    const result = tournament.register(sanitizedAlias, gameUserId, socket);
                     const snapshot = tournament.getSnapshot();
 
                     socket.emit('server:tournament:created', {
@@ -566,7 +566,7 @@ export function setupSocketHandlers(db: Database, io: Server) {
                 }
 
                 try {
-                    const result = tournament.register(sanitizedAlias, socket);
+                    const result = tournament.register(sanitizedAlias, gameUserId, socket);
                     const snapshot = tournament.getSnapshot();
 
                     socket.emit('server:tournament:joined', {

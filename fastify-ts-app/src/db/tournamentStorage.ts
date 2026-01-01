@@ -5,6 +5,7 @@ import type { SerializedBracketState } from "../tournament/bracket";
 
 export interface StoredTournamentParticipant {
     alias: string;
+    userId: number;
     joinedAt: number;
     lastSeenAt: number;
     ready: boolean;
