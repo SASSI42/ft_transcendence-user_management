@@ -80,7 +80,7 @@ export class TournamentRegistry {
 			const rightUserId = tournament.getUserId(rightAlias);
 			
 			if (!leftUserId || !rightUserId) {
-				console.error(`[tournament] Missing user IDs for match ${matchId}`, { leftAlias, rightAlias });
+				console.error(`[tournament] Missing user IDs for match ${matchId} in tournament ${code}`, { leftAlias, rightAlias });
 				needsUpdate = true;
 				tournament.releaseActiveMatch(matchId, aliases);
 				continue;
