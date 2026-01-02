@@ -16,6 +16,12 @@ import TwoFactor from './components/twoFactor';
 // import Leaderboard from './pages/leaderboard';
 // import Recent_maches from './pages/recent_maches';
 import { ChatPage } from "./pages/chat";
+import { GameMenu } from './components/game/GameMenu';
+import { LocalGame } from './components/game/LocalGame';
+import { RemoteGame } from './components/game/RemoteGame';
+import { Tournament } from './components/game/Tournament';
+import { RemoteTournament } from './components/game/RemoteTournament';
+
 
 
 const AuthRoutes = () => {
@@ -37,6 +43,11 @@ const AuthRoutes = () => {
         <Route path="/reset-password" element={isLoggedIn ? <LoginPage page="password_reset"> <PasswordReset /> </LoginPage> : <Navigate to="/signin" /> } />
         <Route path="/" element={isLoggedIn ? <DashboardPage /> : <Navigate to="/signin" />} />
         <Route path="/dashboard" element={isLoggedIn ? <DashboardPage /> : <Navigate to="/signin"/>} />
+        <Route path="/game" element={isLoggedIn ? <GameMenu /> : <Navigate to="/signin" />} />
+        <Route path="/game/local" element={isLoggedIn ? <LocalGame /> : <Navigate to="/signin" />} />
+        <Route path="/game/remote" element={isLoggedIn ? <RemoteGame /> : <Navigate to="/signin" />} />
+        <Route path="/tournament/local" element={isLoggedIn ? <Tournament /> : <Navigate to="/signin" />} />
+        <Route path="/tournament/remote" element={isLoggedIn ? <RemoteTournament /> : <Navigate to="/signin" />} />
         <Route path="*" element={isLoggedIn ? <LoginPage page="not_found_page"> <NotFoundPage /> </LoginPage> : <Navigate to = "/signin"/>} />
         {/* <Route path="/user_profile" element={isLoggedIn ? <UserProfile page="user_profile"> </UserProfile> : <Navigate to = "/signin"/>} />
         <Route path="/leaderboard" element={isLoggedIn ? <Leaderboard page="leaderboard"> </Leaderboard> : <Navigate to = "/signin"/>} />
